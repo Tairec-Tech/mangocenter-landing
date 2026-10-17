@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --mc-blue: #09569A;
+    --mc-blue-dark: #063B6B;
+    --mc-red: #E62E2D;
+    --mc-red-dark: #C81E23;
+    --mc-teal: #3B9B8E;
+    --mc-teal-dark: #2A786D;
+    --mc-whatsapp: #25D366;
+    --mc-bg: #F8FAFC;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #F8FAFC;
+    color: #0F172A;
+  }
+}
+
+/* Tricolor brand stripe inspired by the MangoCenter roof logo */
+.mc-tricolor-bar {
+  background: linear-gradient(
+    90deg,
+    #E62E2D 0%,
+    #E62E2D 33.33%,
+    #09569A 33.33%,
+    #09569A 66.66%,
+    #3B9B8E 66.66%,
+    #3B9B8E 100%
+  );
+}
+
+.mc-tricolor-soft {
+  background: radial-gradient(circle at 10% 20%, rgba(230, 46, 45, 0.07) 0%, transparent 40%),
+              radial-gradient(circle at 50% 50%, rgba(9, 86, 154, 0.06) 0%, transparent 45%),
+              radial-gradient(circle at 90% 80%, rgba(59, 155, 142, 0.09) 0%, transparent 40%),
+              #FFFFFF;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #94A3B8;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #09569A;
+}
+
+input[type="range"] {
+  accent-color: #E62E2D;
+}
+
+/* Smooth fade-in for SPA view transitions */
+@keyframes viewFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.view-animate {
+  animation: viewFadeIn 0.28s ease-out forwards;
+}
