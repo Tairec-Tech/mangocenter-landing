@@ -276,7 +276,7 @@
                 ¡Nueva Sede!
               </span>
               <span class="text-xs sm:text-sm font-bold text-slate-700">
-                Llegamos a <strong class="text-[#09569A]">Maracaibo</strong> • Presencia nacional consolidada
+                Llegamos a <strong class="text-[#09569A]">Maracaibo</strong> • Presencia regional consolidada
               </span>
             </div>
 
@@ -471,22 +471,86 @@
 
       <!-- 5. LOCALIZADOR REAL DE SEDES CON GOOGLE MAPS -->
       <section id="landing-mapa-sedes" class="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-8">
-          <div>
-            <span class="inline-flex items-center gap-1.5 bg-blue-50 text-[#09569A] border border-blue-200 px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase">
-              Direcciones y Coordenadas Reales Verificadas
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
+          <div class="max-w-3xl">
+            <span class="inline-flex items-center gap-1.5 bg-red-50 text-[#E62E2D] border border-red-200/80 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-[#E62E2D] animate-pulse"></span>
+              Presencia Regional Consolidada
             </span>
             <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mt-2 font-['Plus_Jakarta_Sans',sans-serif]">
-              Ubicación en el <span class="text-[#E62E2D]">Mapa</span>
+              Supertiendas en <span class="text-[#09569A]">5 Estados</span> de <span class="text-[#E62E2D]">Venezuela</span>
             </h2>
-            <p class="text-xs sm:text-sm text-slate-600 mt-1">
-              Selecciona cualquier sede para visualizarla en el mapa oficial de Google y abrir su ficha en Maps.
+            <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">
+              Presentes en <strong>Barinas</strong>, <strong>Portuguesa</strong> (Guanare y Araure), <strong>Lara</strong> (Cabudare y Barquisimeto), <strong>Aragua</strong> (Maracay) y <strong>Zulia</strong> (Maracaibo).
             </p>
           </div>
 
-          <div id="store-tabs-container" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" role="tablist">
+          <div id="store-tabs-container" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar shrink-0" role="tablist">
             <!-- Populated dynamically -->
           </div>
+        </div>
+
+        <!-- Mini Tarjetas de los 5 Estados -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+          <button
+            type="button"
+            data-state-card="Barinas"
+            class="state-quick-card text-left bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-[#09569A] p-3 rounded-2xl shadow-2xs transition-all cursor-pointer group"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-slate-900 group-hover:text-[#09569A] transition-colors">Barinas</span>
+              <span class="text-[10px] font-extrabold bg-blue-50 text-[#09569A] px-2 py-0.5 rounded-full">3 Sedes</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-1">Cuatricentenaria, Alto Barinas y Centro</p>
+          </button>
+
+          <button
+            type="button"
+            data-state-card="Portuguesa"
+            class="state-quick-card text-left bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-[#09569A] p-3 rounded-2xl shadow-2xs transition-all cursor-pointer group"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-slate-900 group-hover:text-[#09569A] transition-colors">Portuguesa</span>
+              <span class="text-[10px] font-extrabold bg-blue-50 text-[#09569A] px-2 py-0.5 rounded-full">2 Sedes</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-1">Guanare y Araure</p>
+          </button>
+
+          <button
+            type="button"
+            data-state-card="Lara"
+            class="state-quick-card text-left bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-[#09569A] p-3 rounded-2xl shadow-2xs transition-all cursor-pointer group"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-slate-900 group-hover:text-[#09569A] transition-colors">Lara</span>
+              <span class="text-[10px] font-extrabold bg-blue-50 text-[#09569A] px-2 py-0.5 rounded-full">2 Sedes</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-1">Cabudare y Barquisimeto</p>
+          </button>
+
+          <button
+            type="button"
+            data-state-card="Aragua"
+            class="state-quick-card text-left bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-[#09569A] p-3 rounded-2xl shadow-2xs transition-all cursor-pointer group"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-slate-900 group-hover:text-[#09569A] transition-colors">Aragua</span>
+              <span class="text-[10px] font-extrabold bg-blue-50 text-[#09569A] px-2 py-0.5 rounded-full">1 Sede</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-1">Maracay (Av. Las Delicias)</p>
+          </button>
+
+          <button
+            type="button"
+            data-state-card="Zulia"
+            class="state-quick-card text-left bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-[#E62E2D] p-3 rounded-2xl shadow-2xs transition-all cursor-pointer group col-span-2 sm:col-span-1"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-slate-900 group-hover:text-[#E62E2D] transition-colors">Zulia</span>
+              <span class="text-[10px] font-black bg-red-50 text-[#E62E2D] px-2 py-0.5 rounded-full">★ Nueva Sede</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-1">Maracaibo</p>
+          </button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -591,31 +655,40 @@
           <!-- Presencia Regional -->
           <div class="mt-12 bg-gradient-to-r from-[#09569A] via-[#063B6B] to-[#2A786D] rounded-3xl p-6 sm:p-10 text-white shadow-xl">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div class="lg:col-span-8 space-y-3">
-                <span class="bg-[#E62E2D] text-white text-xs font-black px-3.5 py-1 rounded-full uppercase tracking-wider">
+              <div class="lg:col-span-8 space-y-4">
+                <span class="inline-flex items-center gap-1.5 bg-[#E62E2D] text-white text-xs font-black px-3.5 py-1 rounded-full uppercase tracking-wider">
+                  <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                   Presencia Regional Consolidada
                 </span>
                 <h3 class="text-2xl sm:text-3xl font-black leading-tight">
                   Supertiendas en 5 Estados de Venezuela
                 </h3>
-                <p class="text-xs sm:text-sm text-blue-100 leading-relaxed">
+                <p class="text-xs sm:text-sm text-blue-100 leading-relaxed max-w-2xl">
                   Presentes en <strong>Barinas</strong>, <strong>Portuguesa</strong> (Guanare y Araure), <strong>Lara</strong> (Cabudare y Barquisimeto), <strong>Aragua</strong> (Maracay) y <strong>Zulia</strong> (Maracaibo).
                 </p>
+
+                <div class="flex flex-wrap gap-2 pt-1">
+                  <span class="px-3 py-1 rounded-lg bg-white/10 text-white text-xs font-bold border border-white/20">📍 Barinas (3)</span>
+                  <span class="px-3 py-1 rounded-lg bg-white/10 text-white text-xs font-bold border border-white/20">📍 Portuguesa (2)</span>
+                  <span class="px-3 py-1 rounded-lg bg-white/10 text-white text-xs font-bold border border-white/20">📍 Lara (2)</span>
+                  <span class="px-3 py-1 rounded-lg bg-white/10 text-white text-xs font-bold border border-white/20">📍 Aragua (1)</span>
+                  <span class="px-3 py-1 rounded-lg bg-[#E62E2D]/90 text-white text-xs font-black border border-white/30">★ Zulia (Nueva Sede)</span>
+                </div>
               </div>
               <div class="lg:col-span-4 flex flex-wrap lg:justify-end gap-3">
                 <a
-                  href="#/tienda"
-                  data-nav-view="tienda"
-                  class="nav-view-trigger bg-[#E62E2D] hover:bg-[#c81e23] text-white font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all"
+                  href="#landing-mapa-sedes"
+                  class="bg-white text-[#09569A] hover:bg-blue-50 font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all shadow-md inline-flex items-center gap-2"
                 >
-                  Ir a la Tienda Online
+                  <span>📍 Ver Sedes en el Mapa</span>
                 </a>
                 <a
-                  href="#/contacto"
-                  data-nav-view="contacto"
-                  class="nav-view-trigger bg-white text-[#09569A] font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all"
+                  href="https://wa.me/584226264623?text=Hola%20MangoCenter,%20deseo%20informaci%C3%B3n%20sobre%20sus%20sedes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all shadow-md inline-flex items-center gap-2"
                 >
-                  Contáctanos
+                  <span>💬 Atención WhatsApp</span>
                 </a>
               </div>
             </div>
@@ -1038,11 +1111,11 @@
               Presencia Regional
             </h3>
             <ul class="space-y-2 text-xs">
-              <li class="px-2"><strong>Zulia:</strong> Maracaibo</li>
-              <li class="px-2"><strong>Aragua:</strong> Maracay (Av. Las Delicias)</li>
               <li class="px-2"><strong>Barinas:</strong> Cuatricentenaria, Alto Barinas y Centro</li>
               <li class="px-2"><strong>Portuguesa:</strong> Guanare y Araure</li>
               <li class="px-2"><strong>Lara:</strong> Cabudare y Barquisimeto</li>
+              <li class="px-2"><strong>Aragua:</strong> Maracay (Av. Las Delicias)</li>
+              <li class="px-2"><strong>Zulia:</strong> Maracaibo (Nueva Sede)</li>
             </ul>
           </div>
 

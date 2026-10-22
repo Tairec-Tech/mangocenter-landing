@@ -429,11 +429,11 @@ function renderStoresSection(): void {
 
   const stateTabs = [
     { id: 'all', label: 'Todas las Sedes', tone: 'red' as BrandTone },
-    { id: 'Zulia', label: '★ Zulia', tone: 'red' as BrandTone },
-    { id: 'Aragua', label: 'Aragua', tone: 'blue' as BrandTone },
     { id: 'Barinas', label: 'Barinas (3)', tone: 'teal' as BrandTone },
     { id: 'Portuguesa', label: 'Portuguesa (2)', tone: 'blue' as BrandTone },
-    { id: 'Lara', label: 'Lara (2)', tone: 'red' as BrandTone },
+    { id: 'Lara', label: 'Lara (2)', tone: 'teal' as BrandTone },
+    { id: 'Aragua', label: 'Aragua (1)', tone: 'blue' as BrandTone },
+    { id: 'Zulia', label: '★ Zulia (Nueva Sede)', tone: 'red' as BrandTone },
   ];
 
   tabsContainer.innerHTML = stateTabs
@@ -563,6 +563,28 @@ function renderStoresSection(): void {
           : STORES.find((s) => s.stateFilter === activeStoreStateFilter) ?? STORES[0];
       selectStoreOnMap(firstMatch.id);
     });
+  });
+
+  // Sincronizar selección en las mini tarjetas de estados
+  document.querySelectorAll<HTMLButtonElement>('[data-state-card]').forEach((card) => {
+    const cardState = card.dataset.stateCard;
+    const isCardActive = activeStoreStateFilter === cardState;
+    if (isCardActive) {
+      card.classList.add('ring-2', 'ring-[#09569A]', 'border-[#09569A]', 'bg-blue-50/60');
+      card.classList.remove('bg-white');
+    } else {
+      card.classList.remove('ring-2', 'ring-[#09569A]', 'border-[#09569A]', 'bg-blue-50/60');
+      card.classList.add('bg-white');
+    }
+
+    card.onclick = () => {
+      activeStoreStateFilter = cardState ?? 'all';
+      const firstMatch =
+        activeStoreStateFilter === 'all'
+          ? STORES[0]
+          : STORES.find((s) => s.stateFilter === activeStoreStateFilter) ?? STORES[0];
+      selectStoreOnMap(firstMatch.id);
+    };
   });
 
   listContainer.querySelectorAll<HTMLButtonElement>('[data-select-store]').forEach((btn) => {
