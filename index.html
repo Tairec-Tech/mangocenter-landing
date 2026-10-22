@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/MangoCenter.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MangoCenter Hiperferretería | ¡Para toda la Familia! — 9 Sedes en Venezuela</title>
+    <title>MangoCenter Hiperferretería | ¡Para toda la Familia!</title>
     <meta
       name="description"
-      content="MangoCenter Hiperferretería: ¡Para toda la Familia! Conoce nuestras 9 sedes en Zulia, Aragua, Barinas, Lara y Portuguesa, y visita nuestra Tienda Online con tasa BCV al día."
+      content="MangoCenter Hiperferretería: ¡Para toda la Familia! Conoce nuestras sedes en Zulia, Aragua, Barinas, Lara y Portuguesa con tasa BCV al día."
     />
     <!-- Open Graph / Meta Compartir -->
     <meta property="og:title" content="MangoCenter Hiperferretería | ¡Para toda la Familia!" />
-    <meta property="og:description" content="Ferretería, Construcción, Hogar, Tecnología y Agro con precios transparentes a tasa BCV en 9 sedes en Venezuela." />
+    <meta property="og:description" content="Ferretería, Construcción, Hogar, Tecnología y Agro con precios transparentes a tasa BCV en Venezuela." />
     <meta property="og:image" content="/MangoCenter.png" />
     <meta property="og:type" content="website" />
 
@@ -27,10 +27,10 @@
     <!-- TRICOLOR LOGO STRIPE (Rojo, Azul y Verde del Logo MangoCenter) -->
     <div class="h-1.5 w-full mc-tricolor-bar"></div>
 
-    <!-- TOP BAR: Redes Sociales + 9 Sedes + Tasa BCV + Botón Acceso Odoo -->
+    <!-- TOP BAR: Redes Sociales + Ubicación + Tasa BCV + Botón Único Identificarse -->
     <div class="bg-white border-b border-slate-200/80 text-xs text-slate-600">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-3">
-        <!-- Left: Social Media Quick Icons + 9 Sedes Notice -->
+        <!-- Left: Redes Sociales + Enlace Ubicación -->
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2.5 text-slate-500">
             <a
@@ -71,21 +71,24 @@
             </a>
           </div>
           <span class="hidden sm:inline text-slate-300">|</span>
-          <span class="hidden sm:inline-flex items-center gap-1.5 font-semibold text-slate-700">
-            <span class="bg-[#E62E2D] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">9 Sedes</span>
-            <span>Zulia (9na Sede) • Aragua • Barinas • Lara • Portuguesa</span>
-          </span>
+          <a
+            href="#landing-mapa-sedes"
+            class="hover:text-[#09569A] transition-colors flex items-center gap-1.5 font-bold text-slate-700"
+          >
+            <span>📍</span>
+            <span>Ubicación</span>
+          </a>
         </div>
 
-        <!-- Right: Live BCV Exchange Rate + Odoo Portal + WhatsApp -->
+        <!-- Right: Identificarse + Tasa BCV + Teléfono -->
         <div class="flex items-center gap-2.5 ml-auto sm:ml-0">
           <button
             id="top-odoo-login-btn"
             type="button"
-            class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-extrabold px-2.5 py-1 rounded-full border border-slate-200 transition-colors cursor-pointer"
+            class="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-[#09569A] text-white text-[11px] font-black px-3.5 py-1.5 rounded-full transition-colors cursor-pointer shadow-xs"
           >
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Portal Odoo Empleados</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="auth-btn-label">Identificarse</span>
           </button>
 
           <div class="inline-flex items-center gap-1.5 bg-emerald-50 border border-[#3B9B8E]/40 text-[#2A786D] px-2.5 py-1 rounded-full font-bold text-[11px]">
@@ -106,7 +109,7 @@
     </div>
 
     <!-- =====================================================================
-         MAIN HEADER (Inicio | Sobre Nosotros | Cursos | Contacto | Tienda)
+         MAIN HEADER (Inicio | Sobre Nosotros | Cursos [solo logeado] | Contacto | Tienda)
          ===================================================================== -->
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,11 +145,12 @@
               Sobre Nosotros
             </a>
 
-            <!-- Cursos Odoo (Nuevo módulo visual solicitado) -->
+            <!-- Pestaña Cursos: Se muestra únicamente cuando el usuario está logeado -->
             <a
+              id="nav-cursos-link"
               href="#/cursos"
               data-nav-view="cursos"
-              class="nav-view-trigger px-3.5 py-2 rounded-full text-sm font-bold text-slate-700 hover:text-[#E62E2D] hover:bg-slate-100 transition-all cursor-pointer flex items-center gap-1.5"
+              class="nav-view-trigger hidden px-3.5 py-2 rounded-full text-sm font-bold text-slate-700 hover:text-[#E62E2D] hover:bg-slate-100 transition-all cursor-pointer items-center gap-1.5"
             >
               <span>Cursos</span>
               <span class="bg-[#3B9B8E]/15 text-[#2A786D] text-[10px] font-black px-1.5 py-0.2 rounded-md uppercase">Odoo</span>
@@ -173,18 +177,8 @@
             </a>
           </nav>
 
-          <!-- Right Actions: Login Odoo + Cart + Contáctenos + Mobile Menu -->
+          <!-- Right Actions: Cart + Contáctenos + Mobile Menu -->
           <div class="flex items-center gap-2 sm:gap-2.5">
-            <button
-              id="header-odoo-login-btn"
-              type="button"
-              class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-[#09569A] text-white text-xs font-black px-3.5 py-2.5 rounded-full shadow-xs transition-all cursor-pointer"
-              title="Acceso para empleados MangoCenter a Odoo ERP"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              <span>Ingreso Odoo</span>
-            </button>
-
             <button
               id="cart-open-btn"
               type="button"
@@ -195,12 +189,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               <span class="hidden lg:inline">Carrito</span>
-              <span
-                id="cart-count-badge"
-                class="bg-[#E62E2D] text-white text-[11px] font-extrabold min-w-5 h-5 px-1 rounded-full inline-flex items-center justify-center"
-              >
-                0
-              </span>
             </button>
 
             <a
@@ -245,10 +233,12 @@
             <span class="w-2 h-2 rounded-full bg-[#09569A]"></span>
             Sobre Nosotros
           </a>
+          <!-- Mobile Cursos link (hidden until logged in) -->
           <a
+            id="mobile-cursos-link"
             href="#/cursos"
             data-nav-view="cursos"
-            class="nav-view-trigger px-3.5 py-2.5 rounded-xl bg-emerald-50 text-[#2A786D] font-extrabold text-sm text-left flex items-center gap-2"
+            class="nav-view-trigger hidden px-3.5 py-2.5 rounded-xl bg-emerald-50 text-[#2A786D] font-extrabold text-sm text-left flex items-center gap-2"
           >
             <span class="w-2 h-2 rounded-full bg-[#3B9B8E]"></span>
             Cursos Odoo
@@ -266,16 +256,9 @@
             data-nav-view="tienda"
             class="col-span-2 nav-view-trigger px-4 py-2.5 rounded-xl bg-[#09569A] text-white font-extrabold text-sm text-left flex items-center justify-between shadow-sm"
           >
-            <span>🛒 Ir al Catálogo de Tienda</span>
+            <span>🛒 Ir a la Tienda</span>
             <span>→</span>
           </a>
-          <button
-            id="mobile-odoo-login-btn"
-            type="button"
-            class="col-span-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white font-extrabold text-xs text-center cursor-pointer"
-          >
-            🔑 Ingreso a Odoo ERP Colaboradores
-          </button>
         </div>
       </div>
     </header>
@@ -290,10 +273,10 @@
           <div class="max-w-4xl mx-auto text-center space-y-4 mb-8">
             <div class="inline-flex flex-wrap items-center justify-center gap-2 bg-white border border-slate-200 rounded-full pl-2 pr-4 py-1 shadow-2xs">
               <span class="bg-[#E62E2D] text-white text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                ¡9na y Nueva Sede!
+                ¡Nueva Sede!
               </span>
               <span class="text-xs sm:text-sm font-bold text-slate-700">
-                Llegamos a <strong class="text-[#09569A]">Maracaibo</strong> • Ya somos <strong class="text-[#2A786D]">9 Supertiendas</strong> en Venezuela
+                Llegamos a <strong class="text-[#09569A]">Maracaibo</strong> • Presencia nacional consolidada
               </span>
             </div>
 
@@ -304,7 +287,7 @@
             </h1>
 
             <p class="text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto">
-              Ferretería, Construcción, Hogar, Tecnología y Agro/Jardinería con precios exactos a tasa BCV y atención inmediata en nuestras 9 sedes.
+              Ferretería, Construcción, Hogar, Tecnología y Agro/Jardinería con precios exactos a tasa BCV y atención inmediata en nuestras sedes.
             </p>
 
             <div class="flex flex-wrap items-center justify-center gap-3.5 pt-2">
@@ -327,7 +310,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Ver Mapa de 9 Sedes
+                Ver Ubicación en el Mapa
               </a>
             </div>
           </div>
@@ -398,7 +381,7 @@
             <div class="flex items-center gap-3">
               <span class="w-10 h-10 rounded-2xl bg-red-50 text-[#E62E2D] flex items-center justify-center font-black text-sm shrink-0">01</span>
               <div>
-                <p class="text-xs sm:text-sm font-black text-slate-900">9 Supertiendas</p>
+                <p class="text-xs sm:text-sm font-black text-slate-900">Supertiendas</p>
                 <p class="text-[11px] text-slate-500">Zulia, Aragua, Barinas, Lara y Portuguesa</p>
               </div>
             </div>
@@ -441,7 +424,7 @@
             data-nav-view="tienda"
             class="nav-view-trigger text-xs sm:text-sm font-extrabold text-[#E62E2D] hover:underline"
           >
-            Ver todo el catálogo en la Tienda →
+            Ver más en la Tienda →
           </a>
         </div>
 
@@ -450,35 +433,43 @@
         </div>
       </section>
 
-      <!-- 4. OFERTAS DESTACADAS -->
+      <!-- 4. CATÁLOGO / COMPRA EN CONSTRUCCIÓN -->
       <section class="py-12 sm:py-16 bg-white border-y border-slate-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-            <div>
-              <span class="inline-flex items-center gap-1.5 bg-red-50 text-[#E62E2D] border border-red-200 px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase">
-                Precios Verificados a 2 Decimales
+          <div class="bg-gradient-to-br from-slate-900 via-[#09569A] to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-white/5 pointer-events-none"></div>
+            <div class="max-w-2xl space-y-4">
+              <span class="inline-flex items-center gap-1.5 bg-amber-400 text-slate-950 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+                ⚡ Próximamente en Línea
               </span>
-              <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-2 font-['Plus_Jakarta_Sans',sans-serif]">
-                Ofertas Destacadas en <span class="text-[#E62E2D]">Tienda Online</span>
+              <h2 class="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+                Tienda Online & Compra Digital <span class="text-amber-300">en Construcción</span>
               </h2>
+              <p class="text-sm sm:text-base text-blue-100 leading-relaxed">
+                Estamos integrando nuestro catálogo digital interactivo. Mientras tanto, puedes consultar precios exactos calculados a tasa oficial BCV y comprar directamente con atención personalizada vía WhatsApp oficial.
+              </p>
+              <div class="flex flex-wrap gap-3 pt-2">
+                <a
+                  href="https://wa.me/584226264623?text=Hola%20MangoCenter,%20deseo%20cotizar%20productos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black text-xs sm:text-sm px-6 py-3.5 rounded-xl transition-all shadow-md inline-flex items-center gap-2"
+                >
+                  <span>💬 Cotizar por WhatsApp Directo</span>
+                </a>
+                <a
+                  href="#landing-mapa-sedes"
+                  class="bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-xl transition-all border border-white/20 inline-flex items-center gap-2"
+                >
+                  <span>📍 Ver Ubicaciones de Sedes</span>
+                </a>
+              </div>
             </div>
-
-            <a
-              href="#/tienda"
-              data-nav-view="tienda"
-              class="nav-view-trigger inline-flex items-center gap-2 bg-[#09569A] hover:bg-[#063B6B] text-white font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl transition-all shrink-0"
-            >
-              Ver los 12 Productos y Filtros →
-            </a>
-          </div>
-
-          <div id="landing-featured-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <!-- Populated dynamically -->
           </div>
         </div>
       </section>
 
-      <!-- 5. LOCALIZADOR REAL DE 9 SEDES CON GOOGLE MAPS -->
+      <!-- 5. LOCALIZADOR REAL DE SEDES CON GOOGLE MAPS -->
       <section id="landing-mapa-sedes" class="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-8">
           <div>
@@ -486,7 +477,7 @@
               Direcciones y Coordenadas Reales Verificadas
             </span>
             <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mt-2 font-['Plus_Jakarta_Sans',sans-serif]">
-              Ubica Nuestras <span class="text-[#E62E2D]">9 Sedes</span> en el Mapa
+              Ubicación en el <span class="text-[#E62E2D]">Mapa</span>
             </h2>
             <p class="text-xs sm:text-sm text-slate-600 mt-1">
               Selecciona cualquier sede para visualizarla en el mapa oficial de Google y abrir su ficha en Maps.
@@ -597,7 +588,7 @@
             </div>
           </div>
 
-          <!-- Presencia en 9 Sedes -->
+          <!-- Presencia Regional -->
           <div class="mt-12 bg-gradient-to-r from-[#09569A] via-[#063B6B] to-[#2A786D] rounded-3xl p-6 sm:p-10 text-white shadow-xl">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div class="lg:col-span-8 space-y-3">
@@ -605,10 +596,10 @@
                   Presencia Regional Consolidada
                 </span>
                 <h3 class="text-2xl sm:text-3xl font-black leading-tight">
-                  9 Sedes en 5 Estados de Venezuela
+                  Supertiendas en 5 Estados de Venezuela
                 </h3>
                 <p class="text-xs sm:text-sm text-blue-100 leading-relaxed">
-                  Presentes en <strong>Barinas</strong> (3 sedes), <strong>Portuguesa</strong> (Guanare y Araure), <strong>Lara</strong> (Cabudare y Barquisimeto), <strong>Aragua</strong> (Maracay) y ahora en <strong>Zulia</strong> con nuestra novena sede en <strong>Maracaibo</strong>.
+                  Presentes en <strong>Barinas</strong>, <strong>Portuguesa</strong> (Guanare y Araure), <strong>Lara</strong> (Cabudare y Barquisimeto), <strong>Aragua</strong> (Maracay) y <strong>Zulia</strong> (Maracaibo).
                 </p>
               </div>
               <div class="lg:col-span-4 flex flex-wrap lg:justify-end gap-3">
@@ -634,101 +625,99 @@
     </div>
 
     <!-- =========================================================================
-         VISTA 3: "CURSOS" — ACADEMIA Y FORMACIÓN CONTINUA (MÓDULO ODOO ELEARNING)
+         VISTA 3: "CURSOS" — ACADEMIA (Visible solo para usuarios identificados)
          ========================================================================= -->
     <div id="view-cursos" class="spa-view hidden view-animate">
       <section class="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Odoo Unverified Warning Banner (as seen in Odoo screenshot) -->
-        <div class="mb-8 p-4 sm:p-5 rounded-2xl bg-red-50/90 border border-red-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-red-950 shadow-2xs">
-          <div class="flex items-start gap-3">
-            <span class="w-6 h-6 rounded-lg bg-[#E62E2D] text-white flex items-center justify-center font-black text-xs shrink-0 mt-0.5">!</span>
-            <div>
-              <p class="text-xs sm:text-sm font-extrabold">
-                Tu cuenta de colaborador aún no ha sido verificada en Odoo
-              </p>
-              <p class="text-xs text-red-700 mt-0.5">
-                Haz clic en el botón para solicitar el correo de confirmación y acceder a las evaluaciones de tus cursos.
-              </p>
-            </div>
+        <!-- Gate de Acceso Bloqueado cuando no se ha iniciado sesión -->
+        <div id="cursos-locked-gate" class="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto space-y-4 shadow-sm">
+          <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-2xl font-black">
+            🔒
           </div>
+          <h2 class="text-2xl font-black text-slate-900">Acceso a Cursos de Capacitación</h2>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Esta sección es de uso exclusivo para colaboradores de MangoCenter. Debes identificarte con tus credenciales de Odoo para consultar los módulos formativos y tu progreso.
+          </p>
           <button
             type="button"
-            id="odoo-verify-banner-btn"
-            class="shrink-0 bg-[#E62E2D] hover:bg-[#c81e23] text-white text-xs font-black px-4 py-2 rounded-xl transition-all cursor-pointer shadow-xs"
+            id="cursos-gate-login-btn"
+            class="bg-[#09569A] hover:bg-[#063B6B] text-white font-black text-xs sm:text-sm px-6 py-3 rounded-xl transition-all shadow-md cursor-pointer"
           >
-            Reenviar Verificación Odoo
+            Identificarse en Odoo
           </button>
         </div>
 
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-          <div>
-            <div class="inline-flex items-center gap-2 bg-blue-50 text-[#09569A] border border-blue-200 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-2">
-              <span class="w-2 h-2 rounded-full bg-[#09569A] animate-pulse"></span>
-              Plataforma Odoo 17 eLearning
-            </div>
-            <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
-              Campus Digital <span class="text-[#E62E2D]">Mango</span><span class="text-[#09569A]">Center</span>
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-              Cursos oficiales de capacitación técnica, contabilidad, seguridad y operaciones para colaboradores y aliados comerciales de las 9 sedes.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            id="cursos-open-odoo-modal"
-            class="inline-flex items-center gap-2 bg-slate-900 hover:bg-[#09569A] text-white font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl transition-all shadow-md cursor-pointer shrink-0"
-          >
-            <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-            </svg>
-            <span>Iniciar Sesión en Odoo</span>
-          </button>
-        </div>
-
-        <!-- Split Grid: Left = Courses | Right = Colaborador Profile & Badges -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div class="lg:col-span-8 space-y-10">
-            <!-- Popular Courses Section -->
+        <!-- Contenido de Cursos (Se muestra cuando el usuario está logeado) -->
+        <div id="cursos-logged-content" class="hidden space-y-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-slate-200">
             <div>
-              <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
-                <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-[#E62E2D]"></span>
-                  Cursos más populares
-                </h3>
-                <span class="text-xs font-bold text-slate-400">Plataforma Odoo</span>
+              <div class="inline-flex items-center gap-2 bg-blue-50 text-[#09569A] border border-blue-200 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-2">
+                <span class="w-2 h-2 rounded-full bg-[#09569A] animate-pulse"></span>
+                Plataforma Odoo eLearning
               </div>
-              <div id="odoo-popular-courses-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                <!-- Populated dynamically -->
-              </div>
+              <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+                Campus Digital <span class="text-[#E62E2D]">Mango</span><span class="text-[#09569A]">Center</span>
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
+                Cursos oficiales de capacitación técnica, contabilidad, seguridad y operaciones para colaboradores.
+              </p>
             </div>
 
-            <!-- Recent Courses Section -->
-            <div>
-              <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
-                <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-[#3B9B8E]"></span>
-                  Cursos más recientes
-                </h3>
-                <span class="text-xs font-bold text-slate-400">Actualizados</span>
-              </div>
-              <div id="odoo-recent-courses-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                <!-- Populated dynamically -->
-              </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-500">Sesión iniciada</span>
+              <button
+                type="button"
+                id="logout-btn"
+                class="text-xs font-black text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              >
+                Cerrar Sesión
+              </button>
             </div>
           </div>
 
-          <!-- Right: Colaborador Profile & Insignias Card -->
-          <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-            <div id="odoo-user-card" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
-              <!-- Populated dynamically -->
+          <!-- Split Grid: Left = Courses | Right = Colaborador Profile & Badges -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div class="lg:col-span-8 space-y-10">
+              <!-- Popular Courses Section -->
+              <div>
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
+                  <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#E62E2D]"></span>
+                    Cursos más populares
+                  </h3>
+                  <span class="text-xs font-bold text-slate-400">Plataforma Odoo</span>
+                </div>
+                <div id="odoo-popular-courses-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <!-- Recent Courses Section -->
+              <div>
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
+                  <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#3B9B8E]"></span>
+                    Cursos más recientes
+                  </h3>
+                  <span class="text-xs font-bold text-slate-400">Actualizados</span>
+                </div>
+                <div id="odoo-recent-courses-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
             </div>
 
-            <div id="odoo-badges-card" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-3">
-              <!-- Populated dynamically -->
-            </div>
-          </aside>
+            <!-- Right: Colaborador Profile & Insignias Card -->
+            <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+              <div id="odoo-user-card" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <!-- Populated dynamically -->
+              </div>
+
+              <div id="odoo-badges-card" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-3">
+                <!-- Populated dynamically -->
+              </div>
+            </aside>
+          </div>
         </div>
       </section>
     </div>
@@ -746,7 +735,7 @@
             Estamos al Alcance de <span class="text-[#E62E2D]">tu Mano</span>
           </h2>
           <p class="text-sm sm:text-base text-slate-600 mt-2">
-            Comunícate con nuestro centro de atención al cliente o visita cualquiera de nuestras 9 sedes.
+            Comunícate con nuestro centro de atención al cliente o visita cualquiera de nuestras sedes.
           </p>
         </div>
 
@@ -775,9 +764,9 @@
             </div>
 
             <div class="bg-white rounded-3xl p-6 border-l-4 border-[#E62E2D] shadow-xs space-y-2.5">
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#E62E2D]">Directorio de Nuestras 9 Sedes</span>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#E62E2D]">Directorio de Nuestras Sedes</span>
               <ul class="space-y-2 text-xs text-slate-700">
-                <li><strong class="text-[#E62E2D]">Maracaibo (9na Sede):</strong> Nueva sede oficial en el Estado Zulia</li>
+                <li><strong class="text-[#E62E2D]">Maracaibo:</strong> Sede oficial en el Estado Zulia</li>
                 <li><strong class="text-[#09569A]">Maracay:</strong> Av. Las Delicias con Calle Vicente Lecuna</li>
                 <li><strong>Barinas Cuatricentenaria:</strong> Av. Cuatricentenaria, Sector El Cambio</li>
                 <li><strong>Alto Barinas:</strong> Av. Alberto Arvelo Torrealba, Alto Barinas Norte</li>
@@ -831,20 +820,20 @@
                   />
                 </div>
                 <div>
-                  <label for="contact-branch" class="block text-xs font-extrabold text-slate-700 uppercase mb-1.5">Sede (9 Sedes)</label>
+                  <label for="contact-branch" class="block text-xs font-extrabold text-slate-700 uppercase mb-1.5">Sede</label>
                   <select
                     id="contact-branch"
                     class="w-full px-4 py-3 rounded-xl bg-[#F8FAFC] border border-slate-300 text-sm font-semibold text-slate-800 focus:bg-white focus:border-[#09569A] focus:outline-none"
                   >
-                    <option value="Maracaibo (9na Sede)">Maracaibo (9na y Nueva Sede - Zulia)</option>
-                    <option value="Maracay (Av. Las Delicias)">Maracay (Av. Las Delicias - Aragua)</option>
-                    <option value="Barinas (Av. Cuatricentenaria)">Barinas (Av. Cuatricentenaria)</option>
-                    <option value="Alto Barinas (Av. Alberto Arvelo Torrealba)">Alto Barinas Norte</option>
-                    <option value="Barinas Centro (Av. Cruz Paredes)">Barinas Centro (Av. Cruz Paredes)</option>
-                    <option value="Guanare (Carrera 5ta con Calle 11)">Guanare (Portuguesa)</option>
-                    <option value="Araure (Av. Trino Meleán)">Araure (Portuguesa)</option>
-                    <option value="Cabudare (Av. El Placer)">Cabudare (Lara)</option>
-                    <option value="Barquisimeto (Av. Venezuela con Morán)">Barquisimeto (Lara)</option>
+                    <option value="Maracaibo">Maracaibo (Zulia)</option>
+                    <option value="Maracay">Maracay (Aragua)</option>
+                    <option value="Barinas Cuatricentenaria">Barinas (Av. Cuatricentenaria)</option>
+                    <option value="Alto Barinas">Alto Barinas Norte</option>
+                    <option value="Barinas Centro">Barinas Centro</option>
+                    <option value="Guanare">Guanare (Portuguesa)</option>
+                    <option value="Araure">Araure (Portuguesa)</option>
+                    <option value="Cabudare">Cabudare (Lara)</option>
+                    <option value="Barquisimeto">Barquisimeto (Lara)</option>
                   </select>
                 </div>
               </div>
@@ -873,7 +862,7 @@
     </div>
 
     <!-- =========================================================================
-         VISTA 5: "TIENDA" — CATÁLOGO
+         VISTA 5: "TIENDA" — AVISO "EN CONSTRUCCIÓN"
          ========================================================================= -->
     <div id="view-tienda" class="spa-view hidden view-animate">
       <section class="bg-white border-b border-slate-200 shadow-2xs">
@@ -884,11 +873,8 @@
                 <span class="bg-[#E62E2D] text-white text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase">
                   Tienda Oficial
                 </span>
-                <span class="bg-[#09569A]/10 text-[#09569A] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
-                  9 Sedes Nacionales
-                </span>
-                <span class="bg-[#3B9B8E]/15 text-[#2A786D] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
-                  Precios Exactos a 2 Decimales
+                <span class="bg-amber-100 text-amber-800 text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase">
+                  En Construcción
                 </span>
               </div>
               <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
@@ -905,7 +891,7 @@
                 <div>
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-[#25D366] animate-ping"></span>
-                    <span id="bcv-status-tag" class="text-[11px] font-extrabold uppercase tracking-wider text-[#2A786D]">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#2A786D]">
                       Tasa BCV al Día
                     </span>
                   </div>
@@ -914,51 +900,6 @@
                   </p>
                 </div>
               </div>
-
-              <div class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200">
-                <button
-                  type="button"
-                  data-currency-mode="both"
-                  class="currency-mode-btn px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold bg-[#09569A] text-white cursor-pointer transition-all"
-                >
-                  USD + Bs. BCV
-                </button>
-                <button
-                  type="button"
-                  data-currency-mode="usd"
-                  class="currency-mode-btn px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition-all"
-                >
-                  Solo USD ($)
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Search & Sort Bar -->
-          <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-            <div class="relative flex-1 max-w-xl">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400 absolute left-4 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                id="catalog-search-input"
-                type="search"
-                placeholder="¿Qué estás buscando? (Ej. Taladro, Disco $1.15, Pintura...)"
-                class="w-full pl-12 pr-4 py-2.5 bg-[#F8FAFC] border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-[#09569A] focus:outline-none transition-all"
-              />
-            </div>
-
-            <div class="flex items-center gap-3">
-              <select
-                id="catalog-sort-select"
-                aria-label="Ordenar productos"
-                class="bg-[#F8FAFC] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-700 focus:border-[#09569A] focus:outline-none cursor-pointer"
-              >
-                <option value="featured">Ordenar: Destacados</option>
-                <option value="price-asc">Precio: Menor a Mayor</option>
-                <option value="price-desc">Precio: Mayor a Menor</option>
-                <option value="offers">Priorizar Ofertas</option>
-              </select>
 
               <a
                 href="#/inicio"
@@ -972,110 +913,81 @@
         </div>
       </section>
 
-      <section class="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <!-- LATERAL FILTER SIDEBAR -->
-          <aside class="lg:col-span-3 bg-white border border-slate-200/90 rounded-3xl p-5 space-y-6 shadow-2xs lg:sticky lg:top-24">
-            <div class="h-1 w-full rounded-full mc-tricolor-bar"></div>
+      <!-- ADVERTENCIA DE "EN CONSTRUCCIÓN" -->
+      <section class="py-16 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="bg-white rounded-3xl border border-slate-200/90 p-8 sm:p-14 shadow-lg space-y-6">
+          <div class="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center mx-auto text-4xl shadow-sm">
+            🚧
+          </div>
 
-            <div class="flex items-center justify-between">
-              <h3 class="font-black text-slate-900 text-base">Filtrar Catálogo</h3>
-              <button
-                id="reset-filters-btn"
-                type="button"
-                class="text-xs font-extrabold text-[#E62E2D] hover:underline cursor-pointer"
-              >
-                Limpiar todo
-              </button>
+          <div class="space-y-2 max-w-xl mx-auto">
+            <span class="inline-flex items-center gap-2 bg-amber-100 text-amber-900 border border-amber-200 px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+              Módulo de Compra en Desarrollo
+            </span>
+            <h3 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+              Tienda Online <span class="text-[#E62E2D]">en Construcción</span>
+            </h3>
+            <p class="text-sm sm:text-base text-slate-600 leading-relaxed pt-1">
+              Estamos optimizando nuestro sistema de inventario y pedidos en línea. Muy pronto podrás explorar productos, agregar al carrito y comprar directamente desde nuestra web.
+            </p>
+          </div>
+
+          <!-- 3 Highlight Features -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 text-left">
+            <div class="p-5 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5">
+              <span class="text-xl">💬</span>
+              <h4 class="font-black text-slate-900 text-sm">Cotización Inmediata</h4>
+              <p class="text-xs text-slate-500 leading-snug">
+                Nuestros asesores atienden tus listas de compra por WhatsApp con precios actualizados.
+              </p>
             </div>
 
-            <div>
-              <p class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2.5">Departamentos</p>
-              <div id="sidebar-category-filters" class="space-y-1.5">
-                <!-- Populated dynamically -->
-              </div>
+            <div class="p-5 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5">
+              <span class="text-xl">💵</span>
+              <h4 class="font-black text-slate-900 text-sm">Tasa Oficial BCV</h4>
+              <p class="text-xs text-slate-500 leading-snug">
+                Facturación transparente con conversión al día del Banco Central de Venezuela.
+              </p>
             </div>
 
-            <div class="border-t border-slate-100 pt-5">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Precio Máximo</span>
-                <span id="price-range-label" class="text-xs font-extrabold text-[#E62E2D] bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
-                  Hasta $150.00
-                </span>
-              </div>
-              <input
-                id="price-range-slider"
-                type="range"
-                min="1"
-                max="150"
-                step="1"
-                value="150"
-                class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer"
-              />
-              <div class="flex justify-between text-[11px] font-semibold text-slate-400 mt-1">
-                <span>$1.00</span>
-                <span>$50.00</span>
-                <span>$100.00</span>
-                <span>$150.00</span>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2 mt-3">
-                <button type="button" data-price-max="15" class="price-tier-btn text-[11px] font-bold bg-[#F8FAFC] border border-slate-200 hover:border-[#09569A] rounded-xl py-2 px-2 text-slate-700 transition-colors cursor-pointer">
-                  Menos de $15.00
-                </button>
-                <button type="button" data-price-max="45" class="price-tier-btn text-[11px] font-bold bg-[#F8FAFC] border border-slate-200 hover:border-[#09569A] rounded-xl py-2 px-2 text-slate-700 transition-colors cursor-pointer">
-                  Hasta $45.00
-                </button>
-              </div>
+            <div class="p-5 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5">
+              <span class="text-xl">🏬</span>
+              <h4 class="font-black text-slate-900 text-sm">Retiro en Sede</h4>
+              <p class="text-xs text-slate-500 leading-snug">
+                Paga en línea o retira directamente en cualquiera de nuestras supertiendas.
+              </p>
             </div>
+          </div>
 
-            <div class="border-t border-slate-100 pt-5">
-              <label class="flex items-center justify-between cursor-pointer select-none bg-emerald-50/60 p-3.5 rounded-2xl border border-[#3B9B8E]/30 hover:border-[#3B9B8E] transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <input
-                    id="filter-only-offers"
-                    type="checkbox"
-                    class="w-4 h-4 accent-[#2A786D] rounded cursor-pointer"
-                  />
-                  <div>
-                    <p class="text-xs font-extrabold text-slate-900">Solo Productos en Oferta</p>
-                    <p class="text-[11px] text-[#2A786D] font-bold">Descuentos activos</p>
-                  </div>
-                </div>
-              </label>
-            </div>
-          </aside>
-
-          <!-- PRODUCTS GRID -->
-          <div class="lg:col-span-9">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-6 bg-white px-5 py-3.5 rounded-2xl border border-slate-200/80 shadow-2xs text-xs">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-slate-500 font-medium">Mostrando:</span>
-                <span id="catalog-count-label" class="font-black text-slate-900">12 productos en catálogo</span>
-                <span id="active-category-pill" class="hidden bg-[#E62E2D] text-white font-bold px-3 py-0.5 rounded-full text-[11px]"></span>
-              </div>
-              <span id="catalog-bcv-footnote" class="text-slate-500 font-medium">
-                Conversión calculada a <strong class="text-[#2A786D]">Tasa Oficial BCV</strong>
-              </span>
-            </div>
-
-            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              <!-- Populated dynamically -->
-            </div>
+          <div class="pt-4 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="https://wa.me/584226264623?text=Hola%20MangoCenter,%20deseo%20cotizar%20productos%20para%20mi%20proyecto"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black text-xs sm:text-sm px-7 py-3.5 rounded-xl shadow-md transition-all inline-flex items-center gap-2"
+            >
+              <span>Consultar y Comprar vía WhatsApp</span>
+              <span>→</span>
+            </a>
+            <a
+              href="#landing-mapa-sedes"
+              class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm px-6 py-3.5 rounded-xl transition-all inline-flex items-center gap-2"
+            >
+              <span>Ver Ubicaciones en el Mapa</span>
+            </a>
           </div>
         </div>
       </section>
     </div>
 
     <!-- =====================================================================
-         FOOTER COMPLETO
+         FOOTER
          ===================================================================== -->
     <footer class="bg-white border-t border-slate-200 text-slate-600 mt-12">
       <div class="h-1.5 w-full mc-tricolor-bar"></div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          <!-- Col 1: Logo & Contact -->
           <div class="space-y-4">
             <img
               src="/MangoCenter.png"
@@ -1091,7 +1003,6 @@
             </div>
           </div>
 
-          <!-- Col 2: Navegación -->
           <div>
             <h3 class="text-slate-900 font-black text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-[#E62E2D]"></span>
@@ -1109,42 +1020,32 @@
                 </a>
               </li>
               <li>
-                <a href="#/cursos" data-nav-view="cursos" class="nav-view-trigger hover:text-[#2A786D] transition-colors">
-                  → Campus Odoo eLearning
-                </a>
-              </li>
-              <li>
                 <a href="#/contacto" data-nav-view="contacto" class="nav-view-trigger hover:text-[#2A786D] transition-colors">
-                  → Contacto y Directorio
+                  → Contacto
                 </a>
               </li>
               <li>
                 <a href="#/tienda" data-nav-view="tienda" class="nav-view-trigger text-[#09569A] font-extrabold hover:text-[#E62E2D] transition-colors">
-                  → Tienda Online (Tasa BCV)
+                  → Tienda Online (En Construcción)
                 </a>
               </li>
             </ul>
           </div>
 
-          <!-- Col 3: Cobertura Regional (9 Sedes) -->
           <div>
             <h3 class="text-slate-900 font-black text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-[#09569A]"></span>
-              Nuestras 9 Sedes (5 Estados)
+              Presencia Regional
             </h3>
             <ul class="space-y-2 text-xs">
-              <li class="flex items-center justify-between bg-red-50/80 text-[#E62E2D] font-bold px-3 py-1.5 rounded-lg">
-                <span>Maracaibo (Zulia)</span>
-                <span class="text-[10px] bg-[#E62E2D] text-white px-2 py-0.5 rounded-full">9na SEDE</span>
-              </li>
-              <li class="px-2"><strong>Maracay (Aragua):</strong> Av. Las Delicias c/c Vicente Lecuna</li>
-              <li class="px-2"><strong>Barinas (3 Sedes):</strong> Cuatricentenaria, Alto Barinas y Cruz Paredes</li>
-              <li class="px-2"><strong>Portuguesa (2 Sedes):</strong> Guanare y Araure (Av. Trino Meleán)</li>
-              <li class="px-2"><strong>Lara (2 Sedes):</strong> Cabudare (El Placer) y Barquisimeto (Av. Venezuela)</li>
+              <li class="px-2"><strong>Zulia:</strong> Maracaibo</li>
+              <li class="px-2"><strong>Aragua:</strong> Maracay (Av. Las Delicias)</li>
+              <li class="px-2"><strong>Barinas:</strong> Cuatricentenaria, Alto Barinas y Centro</li>
+              <li class="px-2"><strong>Portuguesa:</strong> Guanare y Araure</li>
+              <li class="px-2"><strong>Lara:</strong> Cabudare y Barquisimeto</li>
             </ul>
           </div>
 
-          <!-- Col 4: Redes Sociales -->
           <div class="space-y-4">
             <h3 class="text-slate-900 font-black text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-[#3B9B8E]"></span>
@@ -1208,7 +1109,7 @@
         </div>
 
         <div class="mt-10 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>Copyright © 2026 <strong>MangoCenter C.A.</strong> Todos los derechos reservados. Zulia • Aragua • Barinas • Lara • Portuguesa.</p>
+          <p>Copyright © 2026 <strong>MangoCenter C.A.</strong> Todos los derechos reservados.</p>
           <a href="#/inicio" class="font-bold text-[#09569A] hover:text-[#E62E2D]">↑ Subir al inicio</a>
         </div>
       </div>
@@ -1226,9 +1127,9 @@
         <span>🛒</span>
         <span>Tienda</span>
       </a>
-      <a href="#/cursos" data-nav-view="cursos" class="nav-view-trigger flex flex-col items-center justify-center py-1 hover:text-[#09569A]">
-        <span>🎓</span>
-        <span>Cursos</span>
+      <a href="#landing-mapa-sedes" class="flex flex-col items-center justify-center py-1 hover:text-[#09569A]">
+        <span>📍</span>
+        <span>Ubicación</span>
       </a>
       <a href="https://wa.me/584226264623" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center py-1 text-[#15803D]">
         <span>💬</span>
@@ -1237,7 +1138,7 @@
     </nav>
 
     <!-- =====================================================================
-         SLIDE-OVER SHOPPING CART DRAWER
+         SLIDE-OVER SHOPPING CART DRAWER (Aviso En Construcción)
          ===================================================================== -->
     <div id="cart-drawer-backdrop" class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-50 hidden" role="dialog" aria-modal="true">
       <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
@@ -1247,7 +1148,7 @@
             <div class="p-5 bg-white border-b border-slate-200 flex items-center justify-between">
               <div>
                 <h3 class="font-black text-slate-900 text-base">Tu Carrito MangoCenter</h3>
-                <p id="cart-bcv-subtitle" class="text-[11px] text-[#2A786D] font-bold">Tasa BCV al Día</p>
+                <p class="text-[11px] text-amber-700 font-bold">Tienda en Construcción</p>
               </div>
               <button
                 id="cart-close-btn"
@@ -1260,46 +1161,35 @@
             </div>
           </div>
 
-          <div id="cart-items-container" class="flex-1 overflow-y-auto p-5 space-y-3">
-            <!-- Populated dynamically -->
+          <div class="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4">
+            <span class="w-16 h-16 rounded-3xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center text-3xl">
+              🚧
+            </span>
+            <div class="space-y-1.5">
+              <h4 class="font-black text-slate-900 text-base">Módulo en Desarrollo</h4>
+              <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                Pronto podrás autogestionar tus pedidos aquí. Por ahora, todas las cotizaciones y compras se realizan directamente por WhatsApp a tasa oficial BCV.
+              </p>
+            </div>
+            <a
+              href="https://wa.me/584226264623?text=Hola%20MangoCenter,%20deseo%20hacer%20un%20pedido%20directo"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black text-xs py-3 px-5 rounded-xl shadow-xs inline-flex items-center gap-2"
+            >
+              <span>💬 Solicitar Pedido por WhatsApp</span>
+            </a>
           </div>
 
-          <div class="p-5 bg-[#F8FAFC] border-t border-slate-200 space-y-2.5">
-            <div class="flex items-center justify-between text-xs text-slate-500">
-              <span>Ahorro en ofertas:</span>
-              <span id="cart-savings-amount" class="font-bold text-[#2A786D]">-$0.00</span>
-            </div>
-            <div class="flex items-center justify-between text-base font-black text-slate-900">
-              <span>Total en Dólares (USD):</span>
-              <span id="cart-total-amount" class="text-xl text-[#09569A]">$0.00</span>
-            </div>
-            <div class="flex items-center justify-between text-xs font-bold text-slate-700 bg-emerald-50 border border-[#3B9B8E]/30 px-3 py-2 rounded-xl">
-              <span>Equivalente BCV al Día:</span>
-              <span id="cart-total-bs" class="text-[#2A786D] font-black">Bs. 0,00</span>
-            </div>
-            <div class="grid grid-cols-1 gap-2 pt-2">
-              <button
-                id="cart-whatsapp-checkout-btn"
-                type="button"
-                class="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-extrabold text-xs sm:text-sm py-3.5 px-4 rounded-xl inline-flex items-center justify-center gap-2 shadow-md cursor-pointer"
-              >
-                Enviar Pedido por WhatsApp
-              </button>
-              <button
-                id="cart-clear-btn"
-                type="button"
-                class="w-full text-xs font-bold text-slate-400 hover:text-[#E62E2D] py-1 cursor-pointer"
-              >
-                Vaciar carrito
-              </button>
-            </div>
+          <div class="p-5 bg-[#F8FAFC] border-t border-slate-200 text-center text-xs text-slate-500">
+            Tasa Oficial BCV aplicada al día
           </div>
         </div>
       </div>
     </div>
 
     <!-- =====================================================================
-         ODOO ERP LOGIN MODAL (Visual Mockup para Empleados y Colaboradores)
+         MODAL DE IDENTIFICACIÓN (Unificado en una sola instancia sin selector de sede)
          ===================================================================== -->
     <div id="odoo-login-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="odoo-modal-title">
       <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
@@ -1311,86 +1201,63 @@
                 Ω
               </span>
               <div>
-                <h3 id="odoo-modal-title" class="font-black text-slate-900 text-base leading-tight">Acceso a Odoo ERP</h3>
-                <p class="text-[11px] text-slate-500 font-bold">MangoCenter Hiperferretería</p>
+                <h3 id="odoo-modal-title" class="font-black text-slate-900 text-base leading-tight">Identificación de Usuario</h3>
+                <p class="text-[11px] text-slate-500 font-bold">Colaboradores & Usuarios Portal</p>
               </div>
             </div>
             <button
               id="odoo-modal-close-btn"
               type="button"
               class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
-              aria-label="Cerrar ventana de Odoo"
+              aria-label="Cerrar ventana"
             >
               ✕
             </button>
           </div>
 
-          <form id="odoo-login-form" class="mt-5 space-y-3.5">
+          <form id="odoo-login-form" class="mt-5 space-y-4">
             <div>
               <label for="odoo-email" class="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                Usuario o Correo Odoo *
+                Usuario o Correo *
               </label>
               <input
                 id="odoo-email"
-                type="email"
+                type="text"
                 required
                 value="j.sarco@mangocenter.com.ve"
-                placeholder="colaborador@mangocenter.com.ve"
+                placeholder="usuario@mangocenter.com.ve"
                 class="w-full px-3.5 py-2.5 rounded-xl bg-[#F8FAFC] border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:border-[#09569A] focus:outline-none"
               />
             </div>
 
             <div>
               <label for="odoo-password" class="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                Contraseña de Colaborador *
+                Contraseña *
               </label>
               <input
                 id="odoo-password"
                 type="password"
                 required
                 value="••••••••••••"
-                placeholder="Ingresa tu contraseña de Odoo"
+                placeholder="Ingresa tu contraseña"
                 class="w-full px-3.5 py-2.5 rounded-xl bg-[#F8FAFC] border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:border-[#09569A] focus:outline-none"
               />
             </div>
 
-            <div>
-              <label for="odoo-branch" class="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                Sede / Base de Datos *
-              </label>
-              <select
-                id="odoo-branch"
-                class="w-full px-3.5 py-2.5 rounded-xl bg-[#F8FAFC] border border-slate-300 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#09569A] focus:outline-none"
-              >
-                <option value="Sede Principal / Producción">MangoCenter Producción (9 Sedes)</option>
-                <option value="Maracaibo (9na Sede)">Sede Maracaibo (Zulia)</option>
-                <option value="Maracay">Sede Maracay (Aragua)</option>
-                <option value="Barinas Cuatricentenaria">Sede Barinas Cuatricentenaria</option>
-                <option value="Alto Barinas">Sede Alto Barinas</option>
-                <option value="Barinas Centro">Sede Barinas Centro</option>
-                <option value="Guanare">Sede Guanare</option>
-                <option value="Araure">Sede Araure</option>
-                <option value="Cabudare">Sede Cabudare</option>
-                <option value="Barquisimeto">Sede Barquisimeto</option>
-              </select>
-            </div>
-
-            <div class="pt-2">
+            <div class="pt-1">
               <button
                 type="submit"
                 id="odoo-submit-btn"
                 class="w-full bg-[#09569A] hover:bg-[#063B6B] text-white font-black text-xs sm:text-sm py-3 px-4 rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>Ingresar al ERP Odoo</span>
+                <span>Identificarse</span>
                 <span>→</span>
               </button>
             </div>
 
             <div class="flex items-center justify-between pt-1 text-[11px] text-slate-500 font-semibold">
-              <a href="https://odoo.mangocenter.com.ve/web/reset_password" target="_blank" rel="noopener noreferrer" class="hover:text-[#09569A] hover:underline">
-                ¿Olvidaste tu contraseña?
-              </a>
-              <span class="text-slate-400">Odoo 17 Enterprise</span>
+              <span class="text-slate-500">Acceso unificado Odoo</span>
+              <span class="text-slate-400">MangoCenter C.A.</span>
             </div>
           </form>
         </div>

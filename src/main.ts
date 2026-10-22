@@ -2,7 +2,6 @@ import './style.css';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import {
   CATEGORIES,
-  PRODUCTS,
   STORES,
   EVENTS,
   ODOO_COURSES,
@@ -10,25 +9,11 @@ import {
   ODOO_SLIDES_URL,
   WHATSAPP_MAIN,
   FALLBACK_BCV_RATE,
-  type Product,
   type BrandTone,
   type OdooCourse,
 } from './data';
 
 type AppView = 'inicio' | 'nosotros' | 'cursos' | 'contacto' | 'tienda';
-
-interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
-interface FilterState {
-  category: string;
-  maxPrice: number;
-  onlyOffers: boolean;
-  searchQuery: string;
-  sortBy: 'featured' | 'price-asc' | 'price-desc' | 'offers';
-}
 
 interface LandingBannerSlide {
   caption: string;
@@ -65,51 +50,11 @@ const LANDING_BANNERS: LandingBannerSlide[] = [
 ];
 
 // Global State
-let currencyMode: 'both' | 'usd' = 'both';
 let bcvRate = FALLBACK_BCV_RATE;
-
-const filterState: FilterState = {
-  category: 'all',
-  maxPrice: 150,
-  onlyOffers: false,
-  searchQuery: '',
-  sortBy: 'featured',
-};
-
 let activeStoreStateFilter = 'all';
-let selectedStoreId = STORES[0].id; // Default to Maracaibo (9na sede)
+let selectedStoreId = STORES[0].id; // Default to Maracaibo
 let gmpMapInstance: google.maps.Map | null = null;
-
-let cart: CartItem[] = [];
-
-/**
- * Utility: Debounce for smooth inputs and search
- */
-function debounce<T extends (...args: never[]) => void>(fn: T, delayMs = 180): (...args: Parameters<T>) => void {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delayMs);
-  };
-}
-
-/**
- * Formats USD strictly to 2 decimal places ($1.15, $38.00)
- */
-function formatUSD(amount: number): string {
-  return `$${amount.toFixed(2)}`;
-}
-
-/**
- * Formats Bolívares at BCV exchange rate (Bs. 53,88)
- */
-function formatBsBCV(usdAmount: number): string {
-  const bs = usdAmount * bcvRate;
-  return `Bs. ${bs.toLocaleString('es-VE', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+let isLoggedIn = false;
 
 /**
  * Fetches live official BCV exchange rate from public API with graceful fallback
@@ -121,17 +66,14 @@ async function fetchLiveBCVRate(): Promise<void> {
     const data = (await res.json()) as { promedio?: number };
     if (typeof data.promedio === 'number' && data.promedio > 0) {
       bcvRate = data.promedio;
-      updateBCVLabels(true);
-      renderLandingFeaturedProducts();
-      renderCatalog();
-      renderCart();
+      updateBCVLabels();
     }
   } catch {
-    updateBCVLabels(false);
+    updateBCVLabels();
   }
 }
 
-function updateBCVLabels(isLive: boolean): void {
+function updateBCVLabels(): void {
   const formattedRate = bcvRate.toLocaleString('es-VE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -139,17 +81,9 @@ function updateBCVLabels(isLive: boolean): void {
 
   const topRate = document.getElementById('top-bcv-rate');
   const storeRate = document.getElementById('store-header-bcv-val');
-  const statusTag = document.getElementById('bcv-status-tag');
-  const cartSubtitle = document.getElementById('cart-bcv-subtitle');
 
   if (topRate) topRate.textContent = `Bs. ${formattedRate} / $1.00`;
   if (storeRate) storeRate.textContent = `Bs. ${formattedRate}`;
-  if (statusTag) {
-    statusTag.textContent = isLive ? 'Tasa Oficial BCV (En Vivo)' : 'Tasa BCV Referencial';
-  }
-  if (cartSubtitle) {
-    cartSubtitle.textContent = `Tasa BCV aplicada: Bs. ${formattedRate} / $1.00`;
-  }
 }
 
 /**
@@ -190,7 +124,7 @@ function getToneClasses(tone: BrandTone): {
 }
 
 /**
- * Toast Notification (Safe DOM elements without innerHTML injection)
+ * Toast Notification
  */
 function showToast(title: string, subtitle: string, tone: BrandTone = 'teal'): void {
   const container = document.getElementById('toast-container');
@@ -230,6 +164,33 @@ function showToast(title: string, subtitle: string, tone: BrandTone = 'teal'): v
 }
 
 /**
+ * Auth State Controller: Controls visibility of Cursos tab and header label
+ */
+function updateAuthStateUI(): void {
+  const authBtnLabel = document.getElementById('auth-btn-label');
+  const navCursos = document.getElementById('nav-cursos-link');
+  const mobileCursos = document.getElementById('mobile-cursos-link');
+  const lockedGate = document.getElementById('cursos-locked-gate');
+  const loggedContent = document.getElementById('cursos-logged-content');
+
+  if (isLoggedIn) {
+    if (authBtnLabel) authBtnLabel.textContent = 'Juan Sarco (Salir)';
+    navCursos?.classList.remove('hidden');
+    navCursos?.classList.add('inline-flex');
+    mobileCursos?.classList.remove('hidden');
+    lockedGate?.classList.add('hidden');
+    loggedContent?.classList.remove('hidden');
+  } else {
+    if (authBtnLabel) authBtnLabel.textContent = 'Identificarse';
+    navCursos?.classList.add('hidden');
+    navCursos?.classList.remove('inline-flex');
+    mobileCursos?.classList.add('hidden');
+    lockedGate?.classList.remove('hidden');
+    loggedContent?.classList.add('hidden');
+  }
+}
+
+/**
  * SPA NAVIGATION (#/inicio, #/nosotros, #/cursos, #/contacto, #/tienda)
  */
 function switchView(targetView: AppView, scrollToTop = true): void {
@@ -249,7 +210,7 @@ function switchView(targetView: AppView, scrollToTop = true): void {
     history.pushState(null, '', targetHash);
   }
 
-  // Update desktop header navigation active pills
+  // Update navigation active pills
   document.querySelectorAll<HTMLElement>('header nav [data-nav-view]').forEach((btn) => {
     const viewAttr = btn.dataset.navView as AppView;
     if (viewAttr === 'tienda') {
@@ -270,6 +231,10 @@ function switchView(targetView: AppView, scrollToTop = true): void {
       }
     }
   });
+
+  if (targetView === 'cursos') {
+    updateAuthStateUI();
+  }
 
   if (scrollToTop) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -299,12 +264,6 @@ function initViewNavigation(): void {
   const mobileDrawer = document.getElementById('mobile-menu-drawer');
   mobileBtn?.addEventListener('click', () => {
     mobileDrawer?.classList.toggle('hidden');
-  });
-
-  document.getElementById('mobile-bottom-sedes-btn')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    switchView('inicio', false);
-    document.getElementById('landing-mapa-sedes')?.scrollIntoView({ behavior: 'smooth' });
   });
 }
 
@@ -351,9 +310,7 @@ function renderLandingCategories(): void {
   container.innerHTML = CATEGORIES.map((cat) => {
     const toneStyle = getToneClasses(cat.tone);
     return `
-      <button
-        type="button"
-        data-landing-cat="${cat.id}"
+      <div
         class="group relative h-56 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-300 text-left flex flex-col justify-between p-4 cursor-pointer focus:outline-none ${toneStyle.borderTop}"
       >
         <img
@@ -377,90 +334,13 @@ function renderLandingCategories(): void {
           <h3 class="text-base sm:text-lg font-black leading-tight">${cat.name}</h3>
           <p class="text-[11px] text-white/90 line-clamp-2 mt-1 leading-snug">${cat.subtitle}</p>
         </div>
-      </button>
+      </div>
     `;
   }).join('');
-
-  container.querySelectorAll<HTMLButtonElement>('[data-landing-cat]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const catId = btn.dataset.landingCat ?? 'all';
-      filterState.category = catId;
-      renderSidebarCategoryFilters();
-      renderCatalog();
-      switchView('tienda');
-    });
-  });
 }
 
 /**
- * 3. LANDING FEATURED WEEKLY OFFERS
- */
-function renderLandingFeaturedProducts(): void {
-  const container = document.getElementById('landing-featured-products');
-  if (!container) return;
-
-  const featured = PRODUCTS.slice(0, 4);
-  container.innerHTML = featured
-    .map((product) => {
-      const toneStyle = getToneClasses(product.tone);
-      const formattedPrice = formatUSD(product.price);
-      const formattedOldPrice = product.oldPrice ? formatUSD(product.oldPrice) : null;
-      const formattedBs = formatBsBCV(product.price);
-
-      return `
-        <article class="bg-[#F8FAFC] rounded-3xl border border-slate-200/90 ${toneStyle.borderTop} p-4 flex flex-col justify-between hover:shadow-lg transition-all group">
-          <div>
-            <div class="relative h-40 rounded-2xl overflow-hidden bg-white mb-3">
-              <img
-                src="${product.image}"
-                alt="${product.name}"
-                loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <span class="absolute top-2.5 left-2.5 ${toneStyle.badgeBg} text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
-                ${product.offerLabel ?? product.categoryLabel}
-              </span>
-            </div>
-            <p class="text-[10px] font-extrabold uppercase tracking-wider ${toneStyle.textAccent}">${product.brand}</p>
-            <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-2 mt-0.5">${product.name}</h3>
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-slate-200/80 flex items-end justify-between gap-2">
-            <div>
-              <div class="flex items-baseline gap-1.5">
-                <span class="text-xl font-black text-slate-900">${formattedPrice}</span>
-                ${
-                  formattedOldPrice
-                    ? `<span class="text-[11px] text-slate-400 line-through">${formattedOldPrice}</span>`
-                    : ''
-                }
-              </div>
-              <p class="text-[11px] font-bold text-[#2A786D]">≈ ${formattedBs}</p>
-            </div>
-
-            <button
-              type="button"
-              data-landing-add="${product.id}"
-              class="${toneStyle.btnBg} text-xs font-extrabold px-3 py-2 rounded-xl cursor-pointer transition-all"
-            >
-              + Carrito
-            </button>
-          </div>
-        </article>
-      `;
-    })
-    .join('');
-
-  container.querySelectorAll<HTMLButtonElement>('[data-landing-add]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const prod = PRODUCTS.find((p) => p.id === btn.dataset.landingAdd);
-      if (prod) addToCart(prod);
-    });
-  });
-}
-
-/**
- * 4. INTERACTIVE 9-STORE LOCATOR WITH VERIFIED GOOGLE MAPS COORDS & LINKS
+ * 3. INTERACTIVE 9-STORE LOCATOR WITH VERIFIED GOOGLE MAPS COORDS & LINKS
  */
 async function initGoogleMapsPlatformIfKeyPresent(): Promise<void> {
   const apiKey = (import.meta as unknown as { env?: Record<string, string> }).env
@@ -530,7 +410,6 @@ function selectStoreOnMap(storeId: string): void {
 
   const iframe = document.getElementById('store-map-iframe') as HTMLIFrameElement | null;
   if (iframe) {
-    // Exact lat/lng coordinate centering for 100% pin precision
     iframe.src = `https://maps.google.com/maps?q=${store.lat},${store.lng}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   }
 
@@ -549,8 +428,8 @@ function renderStoresSection(): void {
   if (!tabsContainer || !listContainer || !detailContainer) return;
 
   const stateTabs = [
-    { id: 'all', label: 'Todas (9)', tone: 'red' as BrandTone },
-    { id: 'Zulia', label: '★ Zulia (9na Sede)', tone: 'red' as BrandTone },
+    { id: 'all', label: 'Todas las Sedes', tone: 'red' as BrandTone },
+    { id: 'Zulia', label: '★ Zulia', tone: 'red' as BrandTone },
     { id: 'Aragua', label: 'Aragua', tone: 'blue' as BrandTone },
     { id: 'Barinas', label: 'Barinas (3)', tone: 'teal' as BrandTone },
     { id: 'Portuguesa', label: 'Portuguesa (2)', tone: 'blue' as BrandTone },
@@ -695,7 +574,7 @@ function renderStoresSection(): void {
 }
 
 /**
- * 5. EVENTS SHOWCASE
+ * 4. EVENTS SHOWCASE
  */
 function renderEventsSection(): void {
   const container = document.getElementById('events-showcase-layout');
@@ -780,7 +659,7 @@ function renderEventsSection(): void {
 }
 
 /**
- * 6. ODOO ELEARNING / CURSOS SECTION & GAMIFICATION WIDGET
+ * 5. ODOO ELEARNING / CURSOS SECTION
  */
 function renderCursosSection(): void {
   const popularGrid = document.getElementById('odoo-popular-courses-grid');
@@ -814,15 +693,11 @@ function renderCursosSection(): void {
             <p class="text-[11px] text-slate-500 font-bold">${ODOO_USER_PROFILE.role}</p>
           </div>
         </div>
-        <span class="text-xs font-extrabold text-[#09569A] cursor-pointer hover:underline" id="view-profile-btn">
-          Ver
-        </span>
       </div>
 
       <div class="bg-[#F8FAFC] border border-slate-200/80 rounded-2xl p-4 text-center space-y-2">
         <p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Siguiente Grado</p>
         <div class="flex items-center justify-center gap-3">
-          <!-- Circular Gauge Indicator (5 Newbie) -->
           <div class="relative w-16 h-16 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <path class="text-slate-200" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -839,26 +714,19 @@ function renderCursosSection(): void {
           </div>
         </div>
         <p class="text-[11px] text-slate-500 leading-snug">
-          ¡Gana tus primeros puntos completando módulos y únete a la aventura!
+          Gana puntos completando tus módulos de capacitación en Odoo.
         </p>
       </div>
 
-      <div class="pt-1 space-y-2">
-        <button
-          type="button"
-          id="user-card-login-odoo-btn"
-          class="w-full bg-[#09569A] hover:bg-[#063B6B] text-white font-extrabold text-xs py-3 px-4 rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
-        >
-          <span>Ingresar a Odoo ERP</span>
-          <span>→</span>
-        </button>
+      <div class="pt-1">
         <a
           href="${ODOO_SLIDES_URL}"
           target="_blank"
           rel="noopener noreferrer"
-          class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl transition-all inline-flex items-center justify-center"
+          class="w-full bg-[#09569A] hover:bg-[#063B6B] text-white font-extrabold text-xs py-2.5 px-3 rounded-xl transition-all inline-flex items-center justify-center gap-2 shadow-xs"
         >
-          Abrir Odoo eLearning Externo ↗
+          <span>Abrir Odoo eLearning Externo</span>
+          <span>↗</span>
         </a>
       </div>
     `;
@@ -867,8 +735,8 @@ function renderCursosSection(): void {
   if (badgesCard) {
     badgesCard.innerHTML = `
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h4 class="font-black text-slate-900 text-sm">Insignias de Colaborador</h4>
-        <span class="text-xs font-bold text-slate-400">Ver todas</span>
+        <h4 class="font-black text-slate-900 text-sm">Insignias Obtenidas</h4>
+        <span class="text-xs font-bold text-slate-400">Progreso</span>
       </div>
       <div class="space-y-2.5">
         ${ODOO_USER_PROFILE.badges
@@ -892,7 +760,7 @@ function renderCursosSection(): void {
     `;
   }
 
-  // Bind course cards clicks to show toast or trigger modal
+  // Bind course cards clicks
   document.querySelectorAll<HTMLElement>('[data-odoo-course]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const courseId = btn.dataset.odooCourse;
@@ -900,22 +768,11 @@ function renderCursosSection(): void {
       if (course) {
         showToast(
           course.title,
-          `Módulo Odoo: ${course.steps} • Requiere login de colaborador.`,
+          `Módulo Odoo: ${course.steps} • Contenido cargado con éxito.`,
           course.tone
         );
-        openOdooModal();
       }
     });
-  });
-
-  document.getElementById('user-card-login-odoo-btn')?.addEventListener('click', openOdooModal);
-  document.getElementById('view-profile-btn')?.addEventListener('click', openOdooModal);
-  document.getElementById('odoo-verify-banner-btn')?.addEventListener('click', () => {
-    showToast(
-      'Correo de Verificación',
-      'Se ha reenviado el enlace de activación para j.sarco@mangocenter.com.ve en Odoo.',
-      'blue'
-    );
   });
 }
 
@@ -953,7 +810,7 @@ function renderCourseCard(course: OdooCourse): string {
           <span>${course.steps}</span>
         </span>
         <span class="text-[#09569A] font-extrabold group-hover:translate-x-1 transition-transform">
-          Ver Curso →
+          Ver Contenido →
         </span>
       </div>
     </article>
@@ -997,7 +854,7 @@ function getCourseIcon(type: OdooCourse['iconType'], bgClass: string): string {
 }
 
 /**
- * 7. ODOO LOGIN MODAL CONTROLLER
+ * 6. MODAL DE IDENTIFICACIÓN
  */
 function openOdooModal(): void {
   const modal = document.getElementById('odoo-login-modal');
@@ -1018,19 +875,33 @@ function closeOdooModal(): void {
 function initOdooModal(): void {
   const modal = document.getElementById('odoo-login-modal');
   const closeBtn = document.getElementById('odoo-modal-close-btn');
-  const topBtn = document.getElementById('top-odoo-login-btn');
-  const headerBtn = document.getElementById('header-odoo-login-btn');
-  const mobileBtn = document.getElementById('mobile-odoo-login-btn');
-  const cursosBtn = document.getElementById('cursos-open-odoo-modal');
+  const topAuthBtn = document.getElementById('top-odoo-login-btn');
+  const gateLoginBtn = document.getElementById('cursos-gate-login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
   const form = document.getElementById('odoo-login-form') as HTMLFormElement | null;
 
-  topBtn?.addEventListener('click', openOdooModal);
-  headerBtn?.addEventListener('click', openOdooModal);
-  mobileBtn?.addEventListener('click', () => {
-    document.getElementById('mobile-menu-drawer')?.classList.add('hidden');
-    openOdooModal();
+  topAuthBtn?.addEventListener('click', () => {
+    if (isLoggedIn) {
+      isLoggedIn = false;
+      updateAuthStateUI();
+      showToast('Sesión Finalizada', 'Has cerrado sesión del portal Odoo.', 'red');
+      if (window.location.hash.includes('cursos')) {
+        switchView('inicio');
+      }
+    } else {
+      openOdooModal();
+    }
   });
-  cursosBtn?.addEventListener('click', openOdooModal);
+
+  gateLoginBtn?.addEventListener('click', openOdooModal);
+
+  logoutBtn?.addEventListener('click', () => {
+    isLoggedIn = false;
+    updateAuthStateUI();
+    showToast('Sesión Finalizada', 'Has cerrado sesión del portal Odoo.', 'red');
+    switchView('inicio');
+  });
+
   closeBtn?.addEventListener('click', closeOdooModal);
 
   modal?.addEventListener('click', (e) => {
@@ -1046,470 +917,43 @@ function initOdooModal(): void {
   form?.addEventListener('submit', (e) => {
     e.preventDefault();
     const emailInput = document.getElementById('odoo-email') as HTMLInputElement | null;
-    const branchInput = document.getElementById('odoo-branch') as HTMLSelectElement | null;
     const email = emailInput?.value.trim() ?? 'colaborador';
-    const branch = branchInput?.value ?? 'MangoCenter';
 
     const submitBtn = document.getElementById('odoo-submit-btn');
     if (submitBtn) {
       submitBtn.innerHTML = `
         <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-        <span>Conectando con Odoo...</span>
+        <span>Verificando...</span>
       `;
     }
 
     setTimeout(() => {
       if (submitBtn) {
         submitBtn.innerHTML = `
-          <span>Ingresar al ERP Odoo</span>
+          <span>Identificarse</span>
           <span>→</span>
         `;
       }
+      isLoggedIn = true;
+      updateAuthStateUI();
       closeOdooModal();
       showToast(
-        'Acceso Autorizado en Odoo',
-        `Sesión activa para ${email} en ${branch}. Redirigiendo a cursos internos.`,
+        'Identificación Exitosa',
+        `Bienvenido, Juan Sebastian Sarco Ereú (${email}). Pestaña de Cursos habilitada.`,
         'teal'
       );
-    }, 600);
+      switchView('cursos');
+    }, 400);
   });
 }
 
 /**
- * 8. STORE ("TIENDA") CATALOG WITH DEBOUNCE
+ * 7. CONTACT FORM & CART DRAWER
  */
-function renderSidebarCategoryFilters(): void {
-  const container = document.getElementById('sidebar-category-filters');
-  if (!container) return;
-
-  const items = [
-    { id: 'all', name: 'Todos los Departamentos', tone: 'red' as BrandTone },
-    ...CATEGORIES.map((c) => ({
-      id: c.id,
-      name: c.name,
-      tone: c.tone,
-    })),
-  ];
-
-  container.innerHTML = items
-    .map((item) => {
-      const active = filterState.category === item.id;
-      const activeBg =
-        item.tone === 'red'
-          ? 'bg-[#E62E2D] text-white'
-          : item.tone === 'teal'
-          ? 'bg-[#3B9B8E] text-white'
-          : 'bg-[#09569A] text-white';
-
-      const dotColor =
-        item.tone === 'red'
-          ? 'bg-[#E62E2D]'
-          : item.tone === 'teal'
-          ? 'bg-[#3B9B8E]'
-          : 'bg-[#09569A]';
-
-      return `
-        <button
-          type="button"
-          data-sidebar-cat="${item.id}"
-          class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-            active
-              ? `${activeBg} shadow-xs`
-              : 'bg-[#F8FAFC] text-slate-700 hover:bg-slate-100 border border-slate-200/60'
-          }"
-        >
-          <span class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full ${active ? 'bg-white' : dotColor}"></span>
-            <span>${item.name}</span>
-          </span>
-          <span>→</span>
-        </button>
-      `;
-    })
-    .join('');
-
-  container.querySelectorAll<HTMLButtonElement>('[data-sidebar-cat]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      filterState.category = btn.dataset.sidebarCat ?? 'all';
-      renderSidebarCategoryFilters();
-      renderCatalog();
-    });
-  });
-}
-
-function renderCatalog(): void {
-  const grid = document.getElementById('products-grid');
-  const countLabel = document.getElementById('catalog-count-label');
-  const activeCatPill = document.getElementById('active-category-pill');
-  if (!grid) return;
-
-  let filtered = PRODUCTS.filter((p) => {
-    if (filterState.category !== 'all' && p.category !== filterState.category) return false;
-    if (p.price > filterState.maxPrice) return false;
-    if (filterState.onlyOffers && !p.isOffer) return false;
-    if (filterState.searchQuery.trim() !== '') {
-      const q = filterState.searchQuery.toLowerCase();
-      const matchName = p.name.toLowerCase().includes(q);
-      const matchBrand = p.brand.toLowerCase().includes(q);
-      const matchSku = p.sku.toLowerCase().includes(q);
-      const matchCat = p.categoryLabel.toLowerCase().includes(q);
-      if (!matchName && !matchBrand && !matchSku && !matchCat) return false;
-    }
-    return true;
-  });
-
-  filtered = [...filtered].sort((a, b) => {
-    if (filterState.sortBy === 'price-asc') return a.price - b.price;
-    if (filterState.sortBy === 'price-desc') return b.price - a.price;
-    if (filterState.sortBy === 'offers') return Number(b.isOffer) - Number(a.isOffer);
-    return 0;
-  });
-
-  if (countLabel) {
-    countLabel.textContent = `${filtered.length} ${filtered.length === 1 ? 'producto' : 'productos'} en catálogo`;
-  }
-
-  if (activeCatPill) {
-    if (filterState.category !== 'all') {
-      const catObj = CATEGORIES.find((c) => c.id === filterState.category);
-      activeCatPill.textContent = catObj?.name ?? filterState.category;
-      activeCatPill.classList.remove('hidden');
-    } else {
-      activeCatPill.classList.add('hidden');
-    }
-  }
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `
-      <div class="col-span-full bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-3">
-        <p class="text-base font-black text-slate-800">No encontramos productos con esos filtros</p>
-        <p class="text-xs text-slate-500">Restablece los filtros para ver el catálogo de MangoCenter.</p>
-        <button id="empty-reset-btn" type="button" class="bg-[#E62E2D] text-white text-xs font-extrabold px-5 py-2.5 rounded-xl cursor-pointer">
-          Restablecer Filtros
-        </button>
-      </div>
-    `;
-    document.getElementById('empty-reset-btn')?.addEventListener('click', resetAllFilters);
-    return;
-  }
-
-  grid.innerHTML = filtered
-    .map((product) => {
-      const toneStyle = getToneClasses(product.tone);
-      const formattedPrice = formatUSD(product.price);
-      const formattedOldPrice = product.oldPrice ? formatUSD(product.oldPrice) : null;
-      const formattedBs = formatBsBCV(product.price);
-
-      const waText = encodeURIComponent(
-        `Hola MangoCenter! Me interesa el producto: *${product.name}* (SKU: ${product.sku}) — Precio: *${formattedPrice}* (${formattedBs} a tasa BCV).`
-      );
-      const waUrl = `https://wa.me/${WHATSAPP_MAIN}?text=${waText}`;
-
-      return `
-        <article class="bg-white rounded-3xl border border-slate-200/90 ${toneStyle.borderTop} shadow-2xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group">
-          <div>
-            <div class="relative h-48 bg-slate-100 overflow-hidden">
-              <img
-                src="${product.image}"
-                alt="${product.name}"
-                loading="lazy"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div class="absolute top-3 left-3 flex flex-col gap-1">
-                ${
-                  product.isOffer
-                    ? `<span class="bg-[#E62E2D] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-xs">
-                        ${product.offerLabel ?? 'Oferta'}
-                      </span>`
-                    : ''
-                }
-                <span class="${toneStyle.badgeBg} text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs w-fit">
-                  ${product.categoryLabel}
-                </span>
-              </div>
-
-              <span class="absolute top-3 right-3 bg-white/95 text-slate-700 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md shadow-2xs">
-                ${product.sku}
-              </span>
-            </div>
-
-            <div class="p-5">
-              <div class="flex items-center justify-between text-[11px] mb-1.5">
-                <span class="font-extrabold uppercase tracking-wider ${toneStyle.textAccent}">${product.brand}</span>
-                <span class="text-amber-500 font-bold">★ ${product.rating.toFixed(1)}</span>
-              </div>
-
-              <h3 class="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 min-h-[2.6rem]">
-                ${product.name}
-              </h3>
-
-              <ul class="mt-3 space-y-1 text-[11px] text-slate-500">
-                ${product.specs
-                  .map(
-                    (spec) => `
-                  <li class="flex items-center gap-1.5 truncate">
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
-                    <span>${spec}</span>
-                  </li>
-                `
-                  )
-                  .join('')}
-              </ul>
-
-              <div class="mt-3.5 inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${toneStyle.softBg}">
-                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                ${product.stockStatus}
-              </div>
-            </div>
-          </div>
-
-          <div class="p-5 pt-3.5 border-t border-slate-100 bg-[#F8FAFC]/70">
-            <div class="flex items-end justify-between mb-3.5">
-              <div>
-                <span class="text-[10px] font-bold uppercase text-slate-400 block">Precio (${product.unit})</span>
-                <div class="flex items-baseline gap-2">
-                  <span class="text-2xl font-black text-slate-900">${formattedPrice}</span>
-                  ${
-                    formattedOldPrice
-                      ? `<span class="text-xs font-bold text-slate-400 line-through">${formattedOldPrice}</span>`
-                      : ''
-                  }
-                </div>
-                ${
-                  currencyMode === 'both'
-                    ? `<p class="text-[11px] font-extrabold text-[#2A786D] mt-0.5">
-                        ≈ ${formattedBs} <span class="font-normal text-slate-400">(BCV)</span>
-                      </p>`
-                    : ''
-                }
-              </div>
-
-              ${
-                product.oldPrice
-                  ? `<span class="text-[10px] font-extrabold text-[#E62E2D] bg-red-50 px-2 py-1 rounded-lg border border-red-100">
-                      -${formatUSD(product.oldPrice - product.price)}
-                    </span>`
-                  : ''
-              }
-            </div>
-
-            <div class="grid grid-cols-1 gap-2">
-              <button
-                type="button"
-                data-add-to-cart="${product.id}"
-                class="w-full ${toneStyle.btnBg} font-extrabold text-xs py-2.5 px-3 rounded-xl inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-              >
-                <span>+ Añadir al Carrito (${formattedPrice})</span>
-              </button>
-
-              <a
-                href="${waUrl}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="w-full bg-white hover:bg-[#25D366] text-slate-700 hover:text-slate-950 font-bold text-xs py-2 px-3 rounded-xl inline-flex items-center justify-center gap-1.5 border border-slate-200 hover:border-[#25D366] transition-all"
-              >
-                Consultar por WhatsApp
-              </a>
-            </div>
-          </div>
-        </article>
-      `;
-    })
-    .join('');
-
-  grid.querySelectorAll<HTMLButtonElement>('[data-add-to-cart]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const prod = PRODUCTS.find((p) => p.id === btn.dataset.addToCart);
-      if (prod) addToCart(prod);
-    });
-  });
-}
-
-function resetAllFilters(): void {
-  filterState.category = 'all';
-  filterState.maxPrice = 150;
-  filterState.onlyOffers = false;
-  filterState.searchQuery = '';
-  filterState.sortBy = 'featured';
-
-  const slider = document.getElementById('price-range-slider') as HTMLInputElement | null;
-  const priceLabel = document.getElementById('price-range-label');
-  const offersCheck = document.getElementById('filter-only-offers') as HTMLInputElement | null;
-  const searchInput = document.getElementById('catalog-search-input') as HTMLInputElement | null;
-  const sortSelect = document.getElementById('catalog-sort-select') as HTMLSelectElement | null;
-
-  if (slider) slider.value = '150';
-  if (priceLabel) priceLabel.textContent = 'Hasta $150.00';
-  if (offersCheck) offersCheck.checked = false;
-  if (searchInput) searchInput.value = '';
-  if (sortSelect) sortSelect.value = 'featured';
-
-  renderSidebarCategoryFilters();
-  renderCatalog();
-}
-
-function initStoreControls(): void {
-  const slider = document.getElementById('price-range-slider') as HTMLInputElement | null;
-  const priceLabel = document.getElementById('price-range-label');
-  const offersCheck = document.getElementById('filter-only-offers') as HTMLInputElement | null;
-  const searchInput = document.getElementById('catalog-search-input') as HTMLInputElement | null;
-  const sortSelect = document.getElementById('catalog-sort-select') as HTMLSelectElement | null;
-  const resetBtn = document.getElementById('reset-filters-btn');
-
-  const debouncedRenderCatalog = debounce(renderCatalog, 150);
-
-  slider?.addEventListener('input', () => {
-    const val = Number(slider.value);
-    filterState.maxPrice = val;
-    if (priceLabel) priceLabel.textContent = `Hasta ${formatUSD(val)}`;
-    debouncedRenderCatalog();
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.price-tier-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const maxVal = Number(btn.dataset.priceMax ?? 150);
-      filterState.maxPrice = maxVal;
-      if (slider) slider.value = String(maxVal);
-      if (priceLabel) priceLabel.textContent = `Hasta ${formatUSD(maxVal)}`;
-      renderCatalog();
-    });
-  });
-
-  offersCheck?.addEventListener('change', () => {
-    filterState.onlyOffers = offersCheck.checked;
-    renderCatalog();
-  });
-
-  searchInput?.addEventListener('input', () => {
-    filterState.searchQuery = searchInput.value;
-    debouncedRenderCatalog();
-  });
-
-  sortSelect?.addEventListener('change', () => {
-    filterState.sortBy = sortSelect.value as FilterState['sortBy'];
-    renderCatalog();
-  });
-
-  resetBtn?.addEventListener('click', () => {
-    resetAllFilters();
-    showToast('Filtros Limpiados', 'Mostrando todos los productos del catálogo.', 'blue');
-  });
-
-  const currencyBtns = document.querySelectorAll<HTMLButtonElement>('.currency-mode-btn');
-  currencyBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      currencyMode = (btn.dataset.currencyMode as 'both' | 'usd') ?? 'both';
-      currencyBtns.forEach((b) => {
-        if (b.dataset.currencyMode === currencyMode) {
-          b.className =
-            'currency-mode-btn px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold bg-[#09569A] text-white cursor-pointer transition-all';
-        } else {
-          b.className =
-            'currency-mode-btn px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition-all';
-        }
-      });
-      renderCatalog();
-    });
-  });
-}
-
-/**
- * 9. CART DRAWER & CONTACT FORM
- */
-function addToCart(product: Product): void {
-  const existing = cart.find((item) => item.product.id === product.id);
-  if (existing) {
-    existing.quantity += 1;
-  } else {
-    cart.push({ product, quantity: 1 });
-  }
-  renderCart();
-  showToast(
-    'Añadido al Carrito',
-    `${product.name} — ${formatUSD(product.price)} (${formatBsBCV(product.price)})`,
-    product.tone
-  );
-}
-
-function updateCartQuantity(productId: string, delta: number): void {
-  const idx = cart.findIndex((i) => i.product.id === productId);
-  if (idx === -1) return;
-  cart[idx].quantity += delta;
-  if (cart[idx].quantity <= 0) {
-    cart.splice(idx, 1);
-  }
-  renderCart();
-}
-
-function renderCart(): void {
-  const badge = document.getElementById('cart-count-badge');
-  const container = document.getElementById('cart-items-container');
-  const totalEl = document.getElementById('cart-total-amount');
-  const totalBsEl = document.getElementById('cart-total-bs');
-  const savingsEl = document.getElementById('cart-savings-amount');
-
-  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
-  const totalPrice = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const totalSavings = cart.reduce((acc, item) => {
-    const diff = item.product.oldPrice ? item.product.oldPrice - item.product.price : 0;
-    return acc + diff * item.quantity;
-  }, 0);
-
-  if (badge) badge.textContent = String(totalItems);
-  if (totalEl) totalEl.textContent = formatUSD(totalPrice);
-  if (totalBsEl) totalBsEl.textContent = formatBsBCV(totalPrice);
-  if (savingsEl) savingsEl.textContent = `-${formatUSD(totalSavings)}`;
-
-  if (!container) return;
-
-  if (cart.length === 0) {
-    container.innerHTML = `
-      <div class="text-center py-12 space-y-2">
-        <p class="text-sm font-black text-slate-800">Tu carrito está vacío</p>
-        <p class="text-xs text-slate-500">Explora la Tienda para añadir productos con precios a 2 decimales y tasa BCV.</p>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = cart
-    .map(({ product, quantity }) => {
-      const subUsd = formatUSD(product.price * quantity);
-      const subBs = formatBsBCV(product.price * quantity);
-      return `
-        <div class="flex items-center gap-3 bg-[#F8FAFC] p-3 rounded-2xl border border-slate-200/80">
-          <img src="${product.image}" alt="${product.name}" class="w-14 h-14 rounded-xl object-cover shrink-0 bg-white border border-slate-200" />
-          <div class="flex-1 min-w-0">
-            <p class="text-[10px] font-mono text-slate-400">${product.sku}</p>
-            <h4 class="text-xs font-extrabold text-slate-900 truncate">${product.name}</h4>
-            <p class="text-xs font-bold text-[#09569A] mt-0.5">
-              ${formatUSD(product.price)} x ${quantity} = <strong class="text-slate-900">${subUsd}</strong>
-            </p>
-            <p class="text-[10px] font-bold text-[#2A786D]">${subBs}</p>
-          </div>
-          <div class="flex flex-col items-center gap-1">
-            <button type="button" data-cart-qty="${product.id}" data-delta="1" class="w-6 h-6 rounded-lg bg-white border border-slate-300 hover:bg-[#09569A] hover:text-white text-xs font-black cursor-pointer">+</button>
-            <span class="text-xs font-extrabold">${quantity}</span>
-            <button type="button" data-cart-qty="${product.id}" data-delta="-1" class="w-6 h-6 rounded-lg bg-white border border-slate-300 hover:bg-[#E62E2D] hover:text-white text-xs font-black cursor-pointer">-</button>
-          </div>
-        </div>
-      `;
-    })
-    .join('');
-
-  container.querySelectorAll<HTMLButtonElement>('[data-cart-qty]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      updateCartQuantity(btn.dataset.cartQty ?? '', Number(btn.dataset.delta ?? 0));
-    });
-  });
-}
-
 function initCartAndForms(): void {
   const cartOpenBtn = document.getElementById('cart-open-btn');
   const cartCloseBtn = document.getElementById('cart-close-btn');
   const cartBackdrop = document.getElementById('cart-drawer-backdrop');
-  const cartClearBtn = document.getElementById('cart-clear-btn');
-  const cartWhatsappBtn = document.getElementById('cart-whatsapp-checkout-btn');
 
   cartOpenBtn?.addEventListener('click', () => {
     cartBackdrop?.classList.remove('hidden');
@@ -1524,41 +968,6 @@ function initCartAndForms(): void {
       cartBackdrop.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
     }
-  });
-
-  cartClearBtn?.addEventListener('click', () => {
-    cart = [];
-    renderCart();
-    showToast('Carrito vaciado', 'Se eliminaron todos los productos.', 'red');
-  });
-
-  cartWhatsappBtn?.addEventListener('click', () => {
-    if (cart.length === 0) {
-      showToast('Carrito vacío', 'Añade productos desde la Tienda antes de enviar.', 'red');
-      return;
-    }
-    const total = cart.reduce((acc, i) => acc + i.product.price * i.quantity, 0);
-    const lines = cart.map(
-      (i) =>
-        `• ${i.quantity}x ${i.product.name} (${i.product.sku}) — ${formatUSD(
-          i.product.price * i.quantity
-        )} (${formatBsBCV(i.product.price * i.quantity)})`
-    );
-    const msg = [
-      '¡Hola *MangoCenter Hiperferretería*! 🛒',
-      'Deseo solicitar el siguiente pedido desde la Tienda Online:',
-      '',
-      ...lines,
-      '',
-      `*TOTAL USD: ${formatUSD(total)}*`,
-      `*EQUIVALENTE BCV (Bs. ${bcvRate.toFixed(2)}): ${formatBsBCV(total)}*`,
-    ].join('\n');
-
-    window.open(
-      `https://wa.me/${WHATSAPP_MAIN}?text=${encodeURIComponent(msg)}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
   });
 
   const contactForm = document.getElementById('contact-page-form') as HTMLFormElement | null;
@@ -1580,7 +989,6 @@ function initCartAndForms(): void {
       `*Consulta:* ${message}`,
     ].filter(Boolean);
 
-    // Synchronous execution avoids Safari/iOS popup blockers
     window.open(
       `https://wa.me/${WHATSAPP_MAIN}?text=${encodeURIComponent(lines.join('\n'))}`,
       '_blank',
@@ -1616,15 +1024,11 @@ document.addEventListener('DOMContentLoaded', () => {
   syncViewFromHash();
   initLandingHeroBanner();
   renderLandingCategories();
-  renderLandingFeaturedProducts();
   renderStoresSection();
   renderEventsSection();
   renderCursosSection();
   initOdooModal();
-  renderSidebarCategoryFilters();
-  renderCatalog();
-  initStoreControls();
-  renderCart();
+  updateAuthStateUI();
   initCartAndForms();
   void fetchLiveBCVRate();
   void initGoogleMapsPlatformIfKeyPresent();
