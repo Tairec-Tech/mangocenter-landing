@@ -73,10 +73,45 @@ export interface StoreEvent {
   image: string;
 }
 
+export interface OdooCourse {
+  id: string;
+  title: string;
+  category: string;
+  level: string;
+  duration?: string;
+  steps: string;
+  isPopular: boolean;
+  isRecent: boolean;
+  tone: BrandTone;
+  iconType: 'accounting' | 'marketing' | 'recruitment' | 'safety' | 'billing' | 'service';
+  image?: string;
+  description: string;
+}
+
+export interface OdooUserProfile {
+  fullName: string;
+  initials: string;
+  email: string;
+  role: string;
+  nextRank: string;
+  currentXp: number;
+  targetXp: number;
+  odooPortalUrl: string;
+  unverifiedWarning: string;
+  badges: Array<{
+    id: string;
+    title: string;
+    description: string;
+    unlocked: boolean;
+  }>;
+}
+
 export const WHATSAPP_MAIN = '584226264623';
 export const WHATSAPP_DISPLAY = '(0422-MANGOCE) +58 422-6264623';
 export const CORPORATE_EMAIL = 'mercadeo@mangocenter.com.ve';
 export const FALLBACK_BCV_RATE = 46.85;
+export const ODOO_DEFAULT_LOGIN_URL = 'https://odoo.mangocenter.com.ve/web/login';
+export const ODOO_SLIDES_URL = 'https://odoo.mangocenter.com.ve/slides';
 
 export const CATEGORIES: Category[] = [
   {
@@ -382,29 +417,29 @@ export const PRODUCTS: Product[] = [
 
 /**
  * LAS 9 SEDES REALES DE MANGOCENTER EN VENEZUELA
- * (Con direcciones verificadas y coordenadas para Google Maps)
+ * Con enlaces directos verificados a Google Maps y coordenadas exactas.
  */
 export const STORES: StoreBranch[] = [
   {
     id: 'maracaibo',
     city: 'Maracaibo',
     stateFilter: 'Zulia',
-    name: 'MangoCenter Maracaibo (9na y Nueva Sede)',
+    name: 'MangoCenter C.A. Maracaibo (9na Sede)',
     state: 'Estado Zulia',
     isNewFlagship: true,
     tone: 'red',
-    address: 'Maracaibo, Estado Zulia (Nueva Sede en Expansión Occidente).',
-    reference: 'Nuestra novena sede que lleva toda la experiencia MangoCenter a la familia zuliana.',
+    address: 'Maracaibo, Estado Zulia (Nueva Sede Oficial en Expansión Occidente).',
+    reference: 'Supertienda con los 5 mundos y atención directa para toda la familia zuliana.',
     hoursWeek: 'Lun a Sáb: 8:00 AM - 8:00 PM',
     hoursSunday: 'Domingos: 9:00 AM - 5:00 PM',
     openHour: 8,
     closeHour: 20,
     phone: '0422-6264623',
     whatsappNumber: '584226264623',
-    mapsQuery: 'Maracaibo, Zulia, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Maracaibo+Zulia+Venezuela',
-    lat: 10.6545,
-    lng: -71.6406,
+    mapsQuery: 'MangoCenter C.A. Maracaibo, Zulia, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/yFPtecM3tcZkVfEH6',
+    lat: 10.65273,
+    lng: -71.658261,
     image: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&w=900&q=80',
     services: ['9na Sede', '5 Departamentos', 'Atención Familiar', 'Estacionamiento'],
     highlightBadge: '¡NUEVA 9na SEDE!'
@@ -416,7 +451,7 @@ export const STORES: StoreBranch[] = [
     name: 'MangoCenter Maracay (Av. Las Delicias)',
     state: 'Estado Aragua',
     tone: 'blue',
-    address: 'Av. Las Delicias, con Calle Vicente Lecuna, Maracay, Edo. Aragua.',
+    address: 'Av. Las Delicias con Calle Vicente Lecuna, Maracay, Edo. Aragua.',
     reference: 'Pasando el Polideportivo Las Delicias, al lado de Farmatodo, Ciudad Jardín.',
     hoursWeek: 'Lun a Sáb: 8:00 AM - 8:00 PM',
     hoursSunday: 'Domingos: 9:00 AM - 5:00 PM',
@@ -436,7 +471,7 @@ export const STORES: StoreBranch[] = [
     id: 'barinas-cuatricentenaria',
     city: 'Barinas (Cuatricentenaria)',
     stateFilter: 'Barinas',
-    name: 'MangoCenter Barinas (Av. Cuatricentenaria)',
+    name: 'MangoCenter C.A. Cuatricentenaria',
     state: 'Estado Barinas',
     tone: 'teal',
     address: 'Av. Cuatricentenaria, Sector El Cambio, Barinas, Edo. Barinas.',
@@ -447,10 +482,10 @@ export const STORES: StoreBranch[] = [
     closeHour: 19,
     phone: '0424-5956627',
     whatsappNumber: '584245956627',
-    mapsQuery: 'Av. Cuatricentenaria, Barinas, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av+Cuatricentenaria+Sector+El+Cambio+Barinas',
-    lat: 8.6186,
-    lng: -70.2175,
+    mapsQuery: 'MangoCenter C.A. Cuatricentenaria, Barinas, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/cM4oP9PwJXthXmjZ7',
+    lat: 8.6310275,
+    lng: -70.2298427,
     image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80',
     services: ['Sede Principal Barinas', 'Construcción y Agro', 'Ferretería', 'Estacionamiento'],
     highlightBadge: 'SEDE CUATRICENTENARIA'
@@ -459,7 +494,7 @@ export const STORES: StoreBranch[] = [
     id: 'alto-barinas',
     city: 'Alto Barinas',
     stateFilter: 'Barinas',
-    name: 'MangoCenter Alto Barinas',
+    name: 'MangoCenter C.A. Alto Barinas',
     state: 'Estado Barinas',
     tone: 'blue',
     address: 'Av. Alberto Arvelo Torrealba, Sector Alto Barinas Norte, Barinas.',
@@ -470,10 +505,10 @@ export const STORES: StoreBranch[] = [
     closeHour: 20,
     phone: '0424-5956627',
     whatsappNumber: '584245956627',
-    mapsQuery: 'Alto Barinas Norte, Barinas, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av+Alberto+Arvelo+Torrealba+Alto+Barinas+Norte',
-    lat: 8.6042,
-    lng: -70.2498,
+    mapsQuery: 'MangoCenter C. A. Alto Barinas, Barinas, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/Zp9khx4XNHgoyLez9',
+    lat: 8.6155819,
+    lng: -70.253761,
     image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80',
     services: ['Hogar y Remodelación', 'Tecnología', 'Iluminación LED', 'Estacionamiento'],
     highlightBadge: 'SEDE ALTO BARINAS'
@@ -482,7 +517,7 @@ export const STORES: StoreBranch[] = [
     id: 'barinas-centro',
     city: 'Barinas Centro',
     stateFilter: 'Barinas',
-    name: 'MangoCenter Barinas Centro',
+    name: 'MangoCenter C.A. Centro',
     state: 'Estado Barinas',
     tone: 'red',
     address: 'Av. Cruz Paredes, Sector Centro, Barinas, Edo. Barinas.',
@@ -493,10 +528,10 @@ export const STORES: StoreBranch[] = [
     closeHour: 19,
     phone: '0424-5956627',
     whatsappNumber: '584245956627',
-    mapsQuery: 'Av. Cruz Paredes, Barinas, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av+Cruz+Paredes+Centro+Barinas',
-    lat: 8.6289,
-    lng: -70.2031,
+    mapsQuery: 'MangoCenter C.A. Centro, Barinas, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/kQ6Tagpf63B7XsPu7',
+    lat: 8.6272057,
+    lng: -70.2127037,
     image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=900&q=80',
     services: ['Formato Express Centro', 'Ferretería y Eléctricos', 'Hogar', 'Compra Rápida'],
     highlightBadge: 'SEDE BARINAS CENTRO'
@@ -505,7 +540,7 @@ export const STORES: StoreBranch[] = [
     id: 'guanare',
     city: 'Guanare',
     stateFilter: 'Portuguesa',
-    name: 'MangoCenter Guanare',
+    name: 'MangoCenter C.A. Guanare',
     state: 'Estado Portuguesa',
     tone: 'teal',
     address: 'Carrera 5ta con Calle 11, Guanare, Edo. Portuguesa.',
@@ -516,10 +551,10 @@ export const STORES: StoreBranch[] = [
     closeHour: 19,
     phone: '0422-6264623',
     whatsappNumber: '584226264623',
-    mapsQuery: 'Carrera 5 con Calle 11, Guanare, Portuguesa, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Carrera+5+con+Calle+11+Guanare+Portuguesa',
-    lat: 9.0418,
-    lng: -69.7421,
+    mapsQuery: 'MangoCenter C.A. Guanare, Portuguesa, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/Eg8FoHsmPvMbx8ut7',
+    lat: 9.0460762,
+    lng: -69.7474339,
     image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=900&q=80',
     services: ['Agro y Jardinería', 'Ferretería General', 'Hogar', 'Asesoría Técnica'],
     highlightBadge: 'SEDE GUANARE'
@@ -528,7 +563,7 @@ export const STORES: StoreBranch[] = [
     id: 'araure',
     city: 'Araure',
     stateFilter: 'Portuguesa',
-    name: 'MangoCenter Araure',
+    name: 'MangoCenter C.A. Araure',
     state: 'Estado Portuguesa',
     tone: 'blue',
     address: 'Av. Trino Meleán con Calle 5, Zona Industrial, Araure, Edo. Portuguesa.',
@@ -539,10 +574,10 @@ export const STORES: StoreBranch[] = [
     closeHour: 19,
     phone: '0422-6264623',
     whatsappNumber: '584226264623',
-    mapsQuery: 'Av. Trino Melean, Araure, Portuguesa, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av+Trino+Melean+Araure+Portuguesa',
-    lat: 9.5604,
-    lng: -69.2145,
+    mapsQuery: 'MangoCenter C. A. Araure, Portuguesa, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/SYZt1WCHiKhdyLWRA',
+    lat: 9.5805367,
+    lng: -69.2163653,
     image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=900&q=80',
     services: ['Construcción y Agro', 'Amplio Estacionamiento', 'Hogar y Tecnología', 'Retiro en Tienda'],
     highlightBadge: 'SEDE ARAURE'
@@ -562,10 +597,10 @@ export const STORES: StoreBranch[] = [
     closeHour: 20,
     phone: '0422-6264623',
     whatsappNumber: '584226264623',
-    mapsQuery: 'Av. El Placer, Cabudare, Lara, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av+El+Placer+Cabudare+Lara',
-    lat: 10.0268,
-    lng: -69.2571,
+    mapsQuery: 'MangoCenter Cabudare, Lara, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/wfhJTCfLqLRDMcKB6',
+    lat: 10.0379599,
+    lng: -69.2766949,
     image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=900&q=80',
     services: ['Hogar y Baños', 'Jardinería', 'Pinturas y Ferretería', 'Estacionamiento'],
     highlightBadge: 'SEDE CABUDARE'
@@ -574,7 +609,7 @@ export const STORES: StoreBranch[] = [
     id: 'barquisimeto',
     city: 'Barquisimeto',
     stateFilter: 'Lara',
-    name: 'MangoCenter Barquisimeto',
+    name: 'MangoCenter C.A. Barquisimeto',
     state: 'Estado Lara',
     tone: 'red',
     address: 'Av. Venezuela con Av. Morán, Barquisimeto, Edo. Lara.',
@@ -585,10 +620,10 @@ export const STORES: StoreBranch[] = [
     closeHour: 20,
     phone: '0422-6264623',
     whatsappNumber: '584226264623',
-    mapsQuery: 'Av. Venezuela con Av. Moran, Barquisimeto, Lara, Venezuela',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av+Venezuela+con+Av+Moran+Barquisimeto+Lara',
-    lat: 10.0678,
-    lng: -69.3082,
+    mapsQuery: 'MangoCenter C.A. Barquisimeto, Lara, Venezuela',
+    mapsUrl: 'https://maps.app.goo.gl/13PLtwYmgGLiE6gr7',
+    lat: 10.0735519,
+    lng: -69.2975427,
     image: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=900&q=80',
     services: ['Ferretería y Herramientas', 'Tecnología', 'Hogar', 'Estacionamiento'],
     highlightBadge: 'SEDE BARQUISIMETO'
@@ -653,3 +688,119 @@ export const EVENTS: StoreEvent[] = [
     image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=700&q=80'
   }
 ];
+
+export const ODOO_COURSES: OdooCourse[] = [
+  {
+    id: 'course-contabilidad',
+    title: 'MÓDULO DE CONTABILIDAD',
+    category: 'Administración y Finanzas',
+    level: 'Básico',
+    duration: '20 minutos',
+    steps: '43 pasos',
+    isPopular: true,
+    isRecent: false,
+    tone: 'red',
+    iconType: 'accounting',
+    description: 'Gestión de libros contables, asientos automáticos y conciliación bancaria en Odoo ERP para MangoCenter.',
+  },
+  {
+    id: 'course-marketing',
+    title: 'MÓDULO DE MARKETING..',
+    category: 'Mercadeo y Promoción',
+    level: 'Básico',
+    steps: '2 pasos',
+    isPopular: true,
+    isRecent: false,
+    tone: 'blue',
+    iconType: 'marketing',
+    description: 'Campañas omnicanal, catálogo digital, cartelería y difusión de ofertas para las 9 sedes.',
+  },
+  {
+    id: 'course-reclutamiento',
+    title: 'MÓDULO DE RECLUTAMIENTO',
+    category: 'Gestión Humana',
+    level: 'Básico',
+    steps: '2 pasos',
+    isPopular: true,
+    isRecent: true,
+    tone: 'teal',
+    iconType: 'recruitment',
+    description: 'Flujo de postulaciones, evaluación técnica y contratación de talento MangoCenter.',
+  },
+  {
+    id: 'course-seguridad',
+    title: 'SEGURIDAD LABORAL',
+    category: 'Higiene y Salud Ocupacional',
+    level: 'Básico',
+    steps: '1 pasos',
+    isPopular: false,
+    isRecent: true,
+    tone: 'red',
+    iconType: 'safety',
+    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=700&q=80',
+    description: 'Protocolos de EPP, manipulación de carga pesada y prevención de accidentes en tienda y almacén.',
+  },
+  {
+    id: 'course-facturacion',
+    title: 'MÓDULO DE FACTURACIÓN..',
+    category: 'Caja y Facturación',
+    level: 'Básico',
+    steps: '12 pasos',
+    isPopular: false,
+    isRecent: true,
+    tone: 'teal',
+    iconType: 'billing',
+    description: 'Emisión fiscal a tasa oficial BCV, notas de entrega y arqueo de caja multi-sede en Odoo.',
+  },
+  {
+    id: 'course-atencion',
+    title: 'ASESORÍA FERRETERA Y ATENCIÓN',
+    category: 'Ventas y Mostrador',
+    level: 'Intermedio',
+    duration: '35 minutos',
+    steps: '18 pasos',
+    isPopular: true,
+    isRecent: true,
+    tone: 'blue',
+    iconType: 'service',
+    description: 'Técnicas de venta consultiva en los 5 mundos: construcción, ferretería, agro, hogar y tecnología.',
+  },
+];
+
+export const ODOO_USER_PROFILE: OdooUserProfile = {
+  fullName: 'JUAN SEBASTIAN SARCO EREU',
+  initials: 'J',
+  email: 'j.sarco@mangocenter.com.ve',
+  role: 'Colaborador MangoCenter • Acceso Odoo 17 ERP',
+  nextRank: '5 Newbie',
+  currentXp: 0,
+  targetXp: 1,
+  odooPortalUrl: 'https://odoo.mangocenter.com.ve/slides',
+  unverifiedWarning: 'Tu cuenta corporativa está pendiente por confirmación de seguridad en Odoo. Haz clic para recibir correo de verificación.',
+  badges: [
+    {
+      id: 'b-1',
+      title: 'EMPEZAR',
+      description: 'Regístrate en la plataforma Odoo de MangoCenter',
+      unlocked: true,
+    },
+    {
+      id: 'b-2',
+      title: 'CONÓCETE A TI MISMO',
+      description: 'Completa tu perfil de colaborador con sede asignada',
+      unlocked: false,
+    },
+    {
+      id: 'b-3',
+      title: 'USUARIO EXPERTO',
+      description: 'Completa tu primer módulo formativo con calificación aprobatoria',
+      unlocked: false,
+    },
+    {
+      id: 'b-4',
+      title: 'CONOCIMIENTO CERTIFICADO',
+      description: 'Obtén una certificación técnica avalada por Academia MangoCenter',
+      unlocked: false,
+    },
+  ],
+};

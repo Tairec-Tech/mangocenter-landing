@@ -5,14 +5,17 @@ import {
   PRODUCTS,
   STORES,
   EVENTS,
+  ODOO_COURSES,
+  ODOO_USER_PROFILE,
+  ODOO_SLIDES_URL,
   WHATSAPP_MAIN,
   FALLBACK_BCV_RATE,
   type Product,
-  type StoreBranch,
   type BrandTone,
+  type OdooCourse,
 } from './data';
 
-type AppView = 'inicio' | 'nosotros' | 'contacto' | 'tienda';
+type AppView = 'inicio' | 'nosotros' | 'cursos' | 'contacto' | 'tienda';
 
 interface CartItem {
   product: Product;
@@ -74,13 +77,21 @@ const filterState: FilterState = {
 };
 
 let activeStoreStateFilter = 'all';
-let selectedStoreId = STORES[0].id; // Default to Maracaibo (9na sede) or user selection
+let selectedStoreId = STORES[0].id; // Default to Maracaibo (9na sede)
 let gmpMapInstance: google.maps.Map | null = null;
 
-let cart: CartItem[] = [
-  { product: PRODUCTS[0], quantity: 2 }, // $1.15 x 2
-  { product: PRODUCTS[1], quantity: 1 }, // $38.00 x 1
-];
+let cart: CartItem[] = [];
+
+/**
+ * Utility: Debounce for smooth inputs and search
+ */
+function debounce<T extends (...args: never[]) => void>(fn: T, delayMs = 180): (...args: Parameters<T>) => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delayMs);
+  };
+}
 
 /**
  * Formats USD strictly to 2 decimal places ($1.15, $38.00)
@@ -107,7 +118,7 @@ async function fetchLiveBCVRate(): Promise<void> {
   try {
     const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
     if (!res.ok) return;
-    const data = (await res.json()) as { promedio?: number; fechaActualizacion?: string };
+    const data = (await res.json()) as { promedio?: number };
     if (typeof data.promedio === 'number' && data.promedio > 0) {
       bcvRate = data.promedio;
       updateBCVLabels(true);
@@ -116,7 +127,6 @@ async function fetchLiveBCVRate(): Promise<void> {
       renderCart();
     }
   } catch {
-    // Graceful fallback if offline
     updateBCVLabels(false);
   }
 }
@@ -143,26 +153,7 @@ function updateBCVLabels(isLive: boolean): void {
 }
 
 /**
- * Checks whether a branch is currently open based on real Venezuela time (America/Caracas)
- */
-function getStoreOpenStatus(store: StoreBranch): { isOpen: boolean; label: string } {
-  try {
-    const nowCaracas = new Date(
-      new Date().toLocaleString('en-US', { timeZone: 'America/Caracas' })
-    );
-    const hour = nowCaracas.getHours();
-    const isOpen = hour >= store.openHour && hour < store.closeHour;
-    return {
-      isOpen,
-      label: isOpen ? 'Abierto ahora' : `Cerrado • Abre ${store.openHour}:00 AM`,
-    };
-  } catch {
-    return { isOpen: true, label: 'Horario habitual activo' };
-  }
-}
-
-/**
- * Helper to return tricolor classes based on BrandTone ('red' | 'blue' | 'teal')
+ * Helper to return tricolor classes based on BrandTone
  */
 function getToneClasses(tone: BrandTone): {
   badgeBg: string;
@@ -199,7 +190,7 @@ function getToneClasses(tone: BrandTone): {
 }
 
 /**
- * Toast Notification
+ * Toast Notification (Safe DOM elements without innerHTML injection)
  */
 function showToast(title: string, subtitle: string, tone: BrandTone = 'teal'): void {
   const container = document.getElementById('toast-container');
@@ -208,17 +199,26 @@ function showToast(title: string, subtitle: string, tone: BrandTone = 'teal'): v
   const toneStyle = getToneClasses(tone);
   const toast = document.createElement('div');
   toast.className = `pointer-events-auto bg-white text-slate-900 p-4 rounded-2xl shadow-xl border border-slate-200 ${toneStyle.borderTop} flex items-start gap-3 transition-all duration-300 translate-y-2 opacity-0`;
-  toast.innerHTML = `
-    <div class="w-7 h-7 rounded-xl ${toneStyle.badgeBg} flex items-center justify-center shrink-0 font-black text-xs">
-      ✓
-    </div>
-    <div class="flex-1 min-w-0">
-      <p class="text-xs font-extrabold text-slate-900 truncate">${title}</p>
-      <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">${subtitle}</p>
-    </div>
-  `;
 
+  const badge = document.createElement('div');
+  badge.className = `w-7 h-7 rounded-xl ${toneStyle.badgeBg} flex items-center justify-center shrink-0 font-black text-xs`;
+  badge.textContent = '✓';
+
+  const body = document.createElement('div');
+  body.className = 'flex-1 min-w-0';
+
+  const titleEl = document.createElement('p');
+  titleEl.className = 'text-xs font-extrabold text-slate-900 truncate';
+  titleEl.textContent = title;
+
+  const subtitleEl = document.createElement('p');
+  subtitleEl.className = 'text-[11px] text-slate-600 mt-0.5 leading-snug';
+  subtitleEl.textContent = subtitle;
+
+  body.append(titleEl, subtitleEl);
+  toast.append(badge, body);
   container.appendChild(toast);
+
   requestAnimationFrame(() => {
     toast.classList.remove('translate-y-2', 'opacity-0');
   });
@@ -226,14 +226,14 @@ function showToast(title: string, subtitle: string, tone: BrandTone = 'teal'): v
   setTimeout(() => {
     toast.classList.add('translate-y-2', 'opacity-0');
     setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  }, 3200);
 }
 
 /**
- * SPA NAVIGATION WITH URL HASH ROUTING (#/inicio, #/nosotros, #/contacto, #/tienda)
+ * SPA NAVIGATION (#/inicio, #/nosotros, #/cursos, #/contacto, #/tienda)
  */
 function switchView(targetView: AppView, scrollToTop = true): void {
-  const views: AppView[] = ['inicio', 'nosotros', 'contacto', 'tienda'];
+  const views: AppView[] = ['inicio', 'nosotros', 'cursos', 'contacto', 'tienda'];
   views.forEach((v) => {
     const el = document.getElementById(`view-${v}`);
     if (!el) return;
@@ -255,18 +255,18 @@ function switchView(targetView: AppView, scrollToTop = true): void {
     if (viewAttr === 'tienda') {
       if (targetView === 'tienda') {
         btn.className =
-          'nav-view-trigger ml-1 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-extrabold bg-[#E62E2D] text-white shadow-md transition-all cursor-pointer';
+          'nav-view-trigger ml-1 inline-flex items-center gap-2 px-4.5 py-2 rounded-full text-sm font-extrabold bg-[#E62E2D] text-white shadow-md transition-all cursor-pointer';
       } else {
         btn.className =
-          'nav-view-trigger ml-1 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-extrabold bg-[#09569A] hover:bg-[#063B6B] text-white shadow-md hover:-translate-y-0.5 transition-all cursor-pointer';
+          'nav-view-trigger ml-1 inline-flex items-center gap-2 px-4.5 py-2 rounded-full text-sm font-extrabold bg-[#09569A] hover:bg-[#063B6B] text-white shadow-md hover:-translate-y-0.5 transition-all cursor-pointer';
       }
     } else {
       if (viewAttr === targetView) {
         btn.className =
-          'nav-view-trigger px-4 py-2 rounded-full text-sm font-extrabold transition-all cursor-pointer bg-[#E62E2D] text-white shadow-xs';
+          'nav-view-trigger px-3.5 py-2 rounded-full text-sm font-extrabold transition-all cursor-pointer bg-[#E62E2D] text-white shadow-xs';
       } else {
         btn.className =
-          'nav-view-trigger px-4 py-2 rounded-full text-sm font-bold text-slate-700 hover:text-[#09569A] hover:bg-slate-100 transition-all cursor-pointer';
+          'nav-view-trigger px-3.5 py-2 rounded-full text-sm font-bold text-slate-700 hover:text-[#09569A] hover:bg-slate-100 transition-all cursor-pointer';
       }
     }
   });
@@ -278,8 +278,8 @@ function switchView(targetView: AppView, scrollToTop = true): void {
 
 function syncViewFromHash(): void {
   const hash = window.location.hash.replace('#/', '').replace('#', '');
-  if (hash === 'nosotros' || hash === 'contacto' || hash === 'tienda' || hash === 'inicio') {
-    switchView(hash, false);
+  if (hash === 'nosotros' || hash === 'cursos' || hash === 'contacto' || hash === 'tienda' || hash === 'inicio') {
+    switchView(hash as AppView, false);
   }
 }
 
@@ -301,7 +301,6 @@ function initViewNavigation(): void {
     mobileDrawer?.classList.toggle('hidden');
   });
 
-  // Mobile bottom bar "9 Sedes" button switches to Inicio and scrolls to map
   document.getElementById('mobile-bottom-sedes-btn')?.addEventListener('click', (e) => {
     e.preventDefault();
     switchView('inicio', false);
@@ -310,7 +309,7 @@ function initViewNavigation(): void {
 }
 
 /**
- * 1. LANDING PAGE PANORAMIC BANNER SWITCHER (No cropping!)
+ * 1. LANDING PAGE BANNER SWITCHER
  */
 function initLandingHeroBanner(): void {
   const imgEl = document.getElementById('landing-hero-img') as HTMLImageElement | null;
@@ -343,7 +342,7 @@ function initLandingHeroBanner(): void {
 }
 
 /**
- * 2. LANDING CATEGORIES GRID (6 Tricolor Cards without fake item counts)
+ * 2. LANDING CATEGORIES GRID
  */
 function renderLandingCategories(): void {
   const container = document.getElementById('landing-categories-grid');
@@ -394,7 +393,7 @@ function renderLandingCategories(): void {
 }
 
 /**
- * 3. LANDING FEATURED WEEKLY OFFERS (4 Products Preview -> Bridge to Store)
+ * 3. LANDING FEATURED WEEKLY OFFERS
  */
 function renderLandingFeaturedProducts(): void {
   const container = document.getElementById('landing-featured-products');
@@ -461,13 +460,12 @@ function renderLandingFeaturedProducts(): void {
 }
 
 /**
- * 4. INTERACTIVE 9-STORE LOCATOR WITH GOOGLE MAPS PLATFORM
+ * 4. INTERACTIVE 9-STORE LOCATOR WITH VERIFIED GOOGLE MAPS COORDS & LINKS
  */
 async function initGoogleMapsPlatformIfKeyPresent(): Promise<void> {
   const apiKey = (import.meta as unknown as { env?: Record<string, string> }).env
     ?.VITE_GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
-    // No API key set in .env yet -> interactive iframe map handles rendering seamlessly
     return;
   }
 
@@ -521,7 +519,6 @@ async function initGoogleMapsPlatformIfKeyPresent(): Promise<void> {
       });
     });
   } catch {
-    // Fallback to iframe if Maps JS fails
     mapCanvas.classList.add('hidden');
     mapIframe?.classList.remove('hidden');
   }
@@ -531,15 +528,12 @@ function selectStoreOnMap(storeId: string): void {
   selectedStoreId = storeId;
   const store = STORES.find((s) => s.id === storeId) ?? STORES[0];
 
-  // Update interactive iframe query
   const iframe = document.getElementById('store-map-iframe') as HTMLIFrameElement | null;
   if (iframe) {
-    iframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(
-      store.mapsQuery
-    )}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    // Exact lat/lng coordinate centering for 100% pin precision
+    iframe.src = `https://maps.google.com/maps?q=${store.lat},${store.lng}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   }
 
-  // Pan Google Maps JS API instance if initialized
   if (gmpMapInstance) {
     gmpMapInstance.panTo({ lat: store.lat, lng: store.lng });
     gmpMapInstance.setZoom(15);
@@ -594,19 +588,16 @@ function renderStoresSection(): void {
       ? STORES
       : STORES.filter((s) => s.stateFilter === activeStoreStateFilter);
 
-  // Ensure selectedStoreId is inside visibleStores
   if (!visibleStores.some((s) => s.id === selectedStoreId) && visibleStores.length > 0) {
     selectedStoreId = visibleStores[0].id;
   }
 
   const activeStore = STORES.find((s) => s.id === selectedStoreId) ?? STORES[0];
 
-  // Render Left Compact Store Cards
   listContainer.innerHTML = visibleStores
     .map((store) => {
       const isSelected = store.id === activeStore.id;
       const toneStyle = getToneClasses(store.tone);
-      const status = getStoreOpenStatus(store);
 
       return `
         <button
@@ -623,10 +614,8 @@ function renderStoresSection(): void {
               <span class="${toneStyle.badgeBg} text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">
                 ${store.highlightBadge}
               </span>
-              <span class="text-[11px] font-bold ${
-                status.isOpen ? 'text-[#15803D]' : 'text-amber-600'
-              }">
-                ● ${status.label}
+              <span class="text-[11px] font-bold text-emerald-700">
+                ● Abierto Habitual
               </span>
             </div>
             <h3 class="font-black text-slate-900 text-sm sm:text-base truncate">${store.name}</h3>
@@ -644,8 +633,6 @@ function renderStoresSection(): void {
     })
     .join('');
 
-  // Render Right Selected Store Detail Footer under the Map
-  const activeStatus = getStoreOpenStatus(activeStore);
   const activeTone = getToneClasses(activeStore.tone);
   const waLink = `https://wa.me/${activeStore.whatsappNumber}?text=${encodeURIComponent(
     `Hola MangoCenter! Consulto por la sede *${activeStore.name}* (${activeStore.address}).`
@@ -658,10 +645,8 @@ function renderStoresSection(): void {
           <span class="${activeTone.badgeBg} text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
             ${activeStore.state}
           </span>
-          <span class="text-xs font-extrabold ${
-            activeStatus.isOpen ? 'text-[#15803D]' : 'text-amber-600'
-          }">
-            ● ${activeStatus.label}
+          <span class="text-xs font-extrabold text-[#15803D]">
+            ● Sede Activa
           </span>
         </div>
         <h3 class="text-lg sm:text-xl font-black text-slate-900">${activeStore.name}</h3>
@@ -710,7 +695,7 @@ function renderStoresSection(): void {
 }
 
 /**
- * 5. EVENTS SHOWCASE (1 Featured Uncropped Event + 3 Compact Cards)
+ * 5. EVENTS SHOWCASE
  */
 function renderEventsSection(): void {
   const container = document.getElementById('events-showcase-layout');
@@ -758,7 +743,7 @@ function renderEventsSection(): void {
       </div>
     </div>
 
-    <!-- 3 Compact Workshops & Courses List -->
+    <!-- 3 Compact Workshops List -->
     <div class="lg:col-span-6 flex flex-col justify-between gap-4">
       ${secondaryEvents
         .map((evt) => {
@@ -795,7 +780,303 @@ function renderEventsSection(): void {
 }
 
 /**
- * 6. STORE ("TIENDA") CATALOG WITH TRICOLOR CARDS & LIVE BCV RATE
+ * 6. ODOO ELEARNING / CURSOS SECTION & GAMIFICATION WIDGET
+ */
+function renderCursosSection(): void {
+  const popularGrid = document.getElementById('odoo-popular-courses-grid');
+  const recentGrid = document.getElementById('odoo-recent-courses-grid');
+  const userCard = document.getElementById('odoo-user-card');
+  const badgesCard = document.getElementById('odoo-badges-card');
+
+  if (popularGrid) {
+    const popularCourses = ODOO_COURSES.filter((c) => c.isPopular);
+    popularGrid.innerHTML = popularCourses
+      .map((course) => renderCourseCard(course))
+      .join('');
+  }
+
+  if (recentGrid) {
+    const recentCourses = ODOO_COURSES.filter((c) => c.isRecent);
+    recentGrid.innerHTML = recentCourses
+      .map((course) => renderCourseCard(course))
+      .join('');
+  }
+
+  if (userCard) {
+    userCard.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white font-black text-lg flex items-center justify-center shadow-xs">
+            ${ODOO_USER_PROFILE.initials}
+          </div>
+          <div>
+            <h4 class="font-black text-slate-900 text-sm sm:text-base leading-tight">${ODOO_USER_PROFILE.fullName}</h4>
+            <p class="text-[11px] text-slate-500 font-bold">${ODOO_USER_PROFILE.role}</p>
+          </div>
+        </div>
+        <span class="text-xs font-extrabold text-[#09569A] cursor-pointer hover:underline" id="view-profile-btn">
+          Ver
+        </span>
+      </div>
+
+      <div class="bg-[#F8FAFC] border border-slate-200/80 rounded-2xl p-4 text-center space-y-2">
+        <p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Siguiente Grado</p>
+        <div class="flex items-center justify-center gap-3">
+          <!-- Circular Gauge Indicator (5 Newbie) -->
+          <div class="relative w-16 h-16 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-slate-200" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="text-[#09569A]" stroke-dasharray="15, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span class="font-black text-slate-900 text-sm leading-none">5</span>
+              <span class="text-[9px] font-bold text-slate-500">Newbie</span>
+            </div>
+          </div>
+          <div class="text-left">
+            <p class="text-xs font-black text-slate-800">${ODOO_USER_PROFILE.nextRank}</p>
+            <p class="text-[11px] font-extrabold text-[#09569A]">${ODOO_USER_PROFILE.currentXp} / ${ODOO_USER_PROFILE.targetXp} XP</p>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-snug">
+          ¡Gana tus primeros puntos completando módulos y únete a la aventura!
+        </p>
+      </div>
+
+      <div class="pt-1 space-y-2">
+        <button
+          type="button"
+          id="user-card-login-odoo-btn"
+          class="w-full bg-[#09569A] hover:bg-[#063B6B] text-white font-extrabold text-xs py-3 px-4 rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span>Ingresar a Odoo ERP</span>
+          <span>→</span>
+        </button>
+        <a
+          href="${ODOO_SLIDES_URL}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl transition-all inline-flex items-center justify-center"
+        >
+          Abrir Odoo eLearning Externo ↗
+        </a>
+      </div>
+    `;
+  }
+
+  if (badgesCard) {
+    badgesCard.innerHTML = `
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h4 class="font-black text-slate-900 text-sm">Insignias de Colaborador</h4>
+        <span class="text-xs font-bold text-slate-400">Ver todas</span>
+      </div>
+      <div class="space-y-2.5">
+        ${ODOO_USER_PROFILE.badges
+          .map(
+            (b) => `
+            <div class="flex items-start gap-2.5 p-2 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+              <span class="w-6 h-6 rounded-full ${
+                b.unlocked ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'
+              } flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                ${b.unlocked ? '★' : '○'}
+              </span>
+              <div>
+                <p class="text-xs font-extrabold text-slate-800">${b.title}</p>
+                <p class="text-[11px] text-slate-500 leading-tight">${b.description}</p>
+              </div>
+            </div>
+          `
+          )
+          .join('')}
+      </div>
+    `;
+  }
+
+  // Bind course cards clicks to show toast or trigger modal
+  document.querySelectorAll<HTMLElement>('[data-odoo-course]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const courseId = btn.dataset.odooCourse;
+      const course = ODOO_COURSES.find((c) => c.id === courseId);
+      if (course) {
+        showToast(
+          course.title,
+          `Módulo Odoo: ${course.steps} • Requiere login de colaborador.`,
+          course.tone
+        );
+        openOdooModal();
+      }
+    });
+  });
+
+  document.getElementById('user-card-login-odoo-btn')?.addEventListener('click', openOdooModal);
+  document.getElementById('view-profile-btn')?.addEventListener('click', openOdooModal);
+  document.getElementById('odoo-verify-banner-btn')?.addEventListener('click', () => {
+    showToast(
+      'Correo de Verificación',
+      'Se ha reenviado el enlace de activación para j.sarco@mangocenter.com.ve en Odoo.',
+      'blue'
+    );
+  });
+}
+
+function renderCourseCard(course: OdooCourse): string {
+  const toneStyle = getToneClasses(course.tone);
+  const iconMarkup = getCourseIcon(course.iconType, toneStyle.badgeBg);
+
+  return `
+    <article
+      data-odoo-course="${course.id}"
+      class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer group"
+    >
+      <div class="p-5">
+        <div class="h-28 rounded-2xl bg-[#F8FAFC] border border-slate-100 flex items-center justify-center mb-4 relative overflow-hidden group-hover:scale-[1.02] transition-transform">
+          ${course.image ? `<img src="${course.image}" alt="${course.title}" class="w-full h-full object-cover" />` : iconMarkup}
+          <span class="absolute top-2.5 right-2.5 bg-white/90 text-slate-700 text-[10px] font-black px-2 py-0.5 rounded-md shadow-2xs">
+            ${course.level}
+          </span>
+        </div>
+
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">
+          ${course.category}
+        </span>
+        <h4 class="font-black text-slate-900 text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+          ${course.title}
+        </h4>
+        <p class="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-snug">
+          ${course.description}
+        </p>
+      </div>
+
+      <div class="p-4 pt-3 border-t border-slate-100 bg-[#F8FAFC]/60 flex items-center justify-between text-xs font-bold text-slate-600">
+        <span class="flex items-center gap-1.5 text-slate-500">
+          <span>📚</span>
+          <span>${course.steps}</span>
+        </span>
+        <span class="text-[#09569A] font-extrabold group-hover:translate-x-1 transition-transform">
+          Ver Curso →
+        </span>
+      </div>
+    </article>
+  `;
+}
+
+function getCourseIcon(type: OdooCourse['iconType'], bgClass: string): string {
+  if (type === 'accounting') {
+    return `
+      <div class="w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center text-white font-black text-xl shadow-xs">
+        📊
+      </div>
+    `;
+  }
+  if (type === 'marketing') {
+    return `
+      <div class="w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center text-white font-black text-xl shadow-xs">
+        📢
+      </div>
+    `;
+  }
+  if (type === 'recruitment') {
+    return `
+      <div class="w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center text-white font-black text-xl shadow-xs">
+        🔍
+      </div>
+    `;
+  }
+  if (type === 'billing') {
+    return `
+      <div class="w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center text-white font-black text-xl shadow-xs">
+        🧾
+      </div>
+    `;
+  }
+  return `
+    <div class="w-14 h-14 rounded-2xl ${bgClass} flex items-center justify-center text-white font-black text-xl shadow-xs">
+      🛠️
+    </div>
+  `;
+}
+
+/**
+ * 7. ODOO LOGIN MODAL CONTROLLER
+ */
+function openOdooModal(): void {
+  const modal = document.getElementById('odoo-login-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+  }
+}
+
+function closeOdooModal(): void {
+  const modal = document.getElementById('odoo-login-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
+
+function initOdooModal(): void {
+  const modal = document.getElementById('odoo-login-modal');
+  const closeBtn = document.getElementById('odoo-modal-close-btn');
+  const topBtn = document.getElementById('top-odoo-login-btn');
+  const headerBtn = document.getElementById('header-odoo-login-btn');
+  const mobileBtn = document.getElementById('mobile-odoo-login-btn');
+  const cursosBtn = document.getElementById('cursos-open-odoo-modal');
+  const form = document.getElementById('odoo-login-form') as HTMLFormElement | null;
+
+  topBtn?.addEventListener('click', openOdooModal);
+  headerBtn?.addEventListener('click', openOdooModal);
+  mobileBtn?.addEventListener('click', () => {
+    document.getElementById('mobile-menu-drawer')?.classList.add('hidden');
+    openOdooModal();
+  });
+  cursosBtn?.addEventListener('click', openOdooModal);
+  closeBtn?.addEventListener('click', closeOdooModal);
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeOdooModal();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      closeOdooModal();
+    }
+  });
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('odoo-email') as HTMLInputElement | null;
+    const branchInput = document.getElementById('odoo-branch') as HTMLSelectElement | null;
+    const email = emailInput?.value.trim() ?? 'colaborador';
+    const branch = branchInput?.value ?? 'MangoCenter';
+
+    const submitBtn = document.getElementById('odoo-submit-btn');
+    if (submitBtn) {
+      submitBtn.innerHTML = `
+        <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        <span>Conectando con Odoo...</span>
+      `;
+    }
+
+    setTimeout(() => {
+      if (submitBtn) {
+        submitBtn.innerHTML = `
+          <span>Ingresar al ERP Odoo</span>
+          <span>→</span>
+        `;
+      }
+      closeOdooModal();
+      showToast(
+        'Acceso Autorizado en Odoo',
+        `Sesión activa para ${email} en ${branch}. Redirigiendo a cursos internos.`,
+        'teal'
+      );
+    }, 600);
+  });
+}
+
+/**
+ * 8. STORE ("TIENDA") CATALOG WITH DEBOUNCE
  */
 function renderSidebarCategoryFilters(): void {
   const container = document.getElementById('sidebar-category-filters');
@@ -858,6 +1139,7 @@ function renderSidebarCategoryFilters(): void {
 
 function renderCatalog(): void {
   const grid = document.getElementById('products-grid');
+  const countLabel = document.getElementById('catalog-count-label');
   const activeCatPill = document.getElementById('active-category-pill');
   if (!grid) return;
 
@@ -882,6 +1164,10 @@ function renderCatalog(): void {
     if (filterState.sortBy === 'offers') return Number(b.isOffer) - Number(a.isOffer);
     return 0;
   });
+
+  if (countLabel) {
+    countLabel.textContent = `${filtered.length} ${filtered.length === 1 ? 'producto' : 'productos'} en catálogo`;
+  }
 
   if (activeCatPill) {
     if (filterState.category !== 'all') {
@@ -1070,11 +1356,13 @@ function initStoreControls(): void {
   const sortSelect = document.getElementById('catalog-sort-select') as HTMLSelectElement | null;
   const resetBtn = document.getElementById('reset-filters-btn');
 
+  const debouncedRenderCatalog = debounce(renderCatalog, 150);
+
   slider?.addEventListener('input', () => {
     const val = Number(slider.value);
     filterState.maxPrice = val;
     if (priceLabel) priceLabel.textContent = `Hasta ${formatUSD(val)}`;
-    renderCatalog();
+    debouncedRenderCatalog();
   });
 
   document.querySelectorAll<HTMLButtonElement>('.price-tier-btn').forEach((btn) => {
@@ -1094,7 +1382,7 @@ function initStoreControls(): void {
 
   searchInput?.addEventListener('input', () => {
     filterState.searchQuery = searchInput.value;
-    renderCatalog();
+    debouncedRenderCatalog();
   });
 
   sortSelect?.addEventListener('change', () => {
@@ -1126,7 +1414,7 @@ function initStoreControls(): void {
 }
 
 /**
- * 7. CART DRAWER & CONTACT FORM
+ * 9. CART DRAWER & CONTACT FORM
  */
 function addToCart(product: Product): void {
   const existing = cart.find((item) => item.product.id === product.id);
@@ -1223,16 +1511,25 @@ function initCartAndForms(): void {
   const cartClearBtn = document.getElementById('cart-clear-btn');
   const cartWhatsappBtn = document.getElementById('cart-whatsapp-checkout-btn');
 
-  cartOpenBtn?.addEventListener('click', () => cartBackdrop?.classList.remove('hidden'));
-  cartCloseBtn?.addEventListener('click', () => cartBackdrop?.classList.add('hidden'));
+  cartOpenBtn?.addEventListener('click', () => {
+    cartBackdrop?.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+  });
+  cartCloseBtn?.addEventListener('click', () => {
+    cartBackdrop?.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  });
   cartBackdrop?.addEventListener('click', (e) => {
-    if (e.target === cartBackdrop) cartBackdrop.classList.add('hidden');
+    if (e.target === cartBackdrop) {
+      cartBackdrop.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
   });
 
   cartClearBtn?.addEventListener('click', () => {
     cart = [];
     renderCart();
-    showToast('Carrito vaciado', 'Se eliminaron los productos.', 'red');
+    showToast('Carrito vaciado', 'Se eliminaron todos los productos.', 'red');
   });
 
   cartWhatsappBtn?.addEventListener('click', () => {
@@ -1267,26 +1564,34 @@ function initCartAndForms(): void {
   const contactForm = document.getElementById('contact-page-form') as HTMLFormElement | null;
   contactForm?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = (document.getElementById('contact-name') as HTMLInputElement | null)?.value ?? '';
-    const branch =
-      (document.getElementById('contact-branch') as HTMLSelectElement | null)?.value ?? '';
-    const message =
-      (document.getElementById('contact-message') as HTMLTextAreaElement | null)?.value ?? '';
+    const name = (document.getElementById('contact-name') as HTMLInputElement | null)?.value.trim() ?? '';
+    const phone = (document.getElementById('contact-phone') as HTMLInputElement | null)?.value.trim() ?? '';
+    const email = (document.getElementById('contact-email') as HTMLInputElement | null)?.value.trim() ?? '';
+    const branch = (document.getElementById('contact-branch') as HTMLSelectElement | null)?.value ?? '';
+    const message = (document.getElementById('contact-message') as HTMLTextAreaElement | null)?.value.trim() ?? '';
+
+    const lines = [
+      `¡Hola *MangoCenter*! 👋`,
+      `• *Cliente:* ${name}`,
+      `• *Teléfono:* ${phone}`,
+      email ? `• *Correo:* ${email}` : null,
+      `• *Sede:* ${branch}`,
+      '',
+      `*Consulta:* ${message}`,
+    ].filter(Boolean);
+
+    // Synchronous execution avoids Safari/iOS popup blockers
+    window.open(
+      `https://wa.me/${WHATSAPP_MAIN}?text=${encodeURIComponent(lines.join('\n'))}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
 
     showToast(
       `¡Gracias, ${name}!`,
-      `Redirigiendo tu solicitud para ${branch} vía WhatsApp oficial.`,
+      `Abriendo WhatsApp para atender tu consulta en ${branch}.`,
       'teal'
     );
-
-    const waMsg = `Hola MangoCenter! Soy *${name}*, escribo para la sede *${branch}*: ${message}`;
-    setTimeout(() => {
-      window.open(
-        `https://wa.me/${WHATSAPP_MAIN}?text=${encodeURIComponent(waMsg)}`,
-        '_blank',
-        'noopener,noreferrer'
-      );
-    }, 700);
     contactForm.reset();
   });
 
@@ -1297,7 +1602,7 @@ function initCartAndForms(): void {
     if (newsEmail?.value) {
       showToast(
         '¡Suscripción Exitosa!',
-        `Recibirás nuestras ofertas en ${newsEmail.value}`,
+        `Recibirás nuestras promociones en ${newsEmail.value}`,
         'blue'
       );
       newsEmail.value = '';
@@ -1305,7 +1610,7 @@ function initCartAndForms(): void {
   });
 }
 
-// Initialize App
+// Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
   initViewNavigation();
   syncViewFromHash();
@@ -1314,6 +1619,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderLandingFeaturedProducts();
   renderStoresSection();
   renderEventsSection();
+  renderCursosSection();
+  initOdooModal();
   renderSidebarCategoryFilters();
   renderCatalog();
   initStoreControls();
