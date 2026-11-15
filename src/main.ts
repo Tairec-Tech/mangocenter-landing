@@ -1,3 +1,5 @@
+import { PAGES, resolveRoute, applyPageMetadata, type AppView } from './pages';
+import './editorial.css';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import {
   CATEGORIES,
@@ -5,7 +7,6 @@ import {
   STORES,
   EVENTS,
   FAQS,
-  HERO_SLIDES,
   ODOO_COURSES,
   ODOO_USER_PROFILE,
   ODOO_SLIDES_URL,
@@ -21,7 +22,7 @@ import {
   refreshScrollAnimations,
 } from './animations';
 
-type AppView = 'inicio' | 'tienda' | 'nosotros' | 'contacto' | 'cursos';
+
 
 interface QuoteItem {
   productId: string;
@@ -39,7 +40,6 @@ let bcvRate: number = FALLBACK_BCV_RATE;
 let bcvIsLive = false;
 let heroCalcUsd = 25;
 
-let activeHeroSlideIndex = 0;
 let activeCatalogCategory = 'todos';
 let activeCatalogSearch = '';
 let activeCatalogSort: 'featured' | 'price-asc' | 'price-desc' = 'featured';
@@ -54,6 +54,7 @@ let selectedCourseId: string = ODOO_COURSES[0]?.id ?? '';
 let collaboratorDemoUnlocked = false;
 
 let quoteItems: QuoteItem[] = loadQuoteItems();
+let clearedQuote: QuoteItem[] | null = null;
 
 // Google Maps runtime handles
 let googleMapInstance: google.maps.Map | null = null;
@@ -64,7 +65,6 @@ let mapsInitialized = false;
 let toastTimer: number | undefined;
 let lastFocusedBeforeDrawer: HTMLElement | null = null;
 let lastFocusedBeforeModal: HTMLElement | null = null;
-const inputRevertTimers = new Map<string, number>();
 const tabSyncCallbacks: Array<() => void> = [];
 
 /* ==========================================================================
@@ -83,7 +83,8 @@ function loadQuoteItems(): QuoteItem[] {
           item !== null &&
           typeof (item as QuoteItem).productId === 'string' &&
           typeof (item as QuoteItem).qty === 'number' &&
-          (item as QuoteItem).qty > 0 &&
+          Number.isFinite((item as QuoteItem).qty) &&
+          (item as QuoteItem).qty >= 1 &&
           PRODUCTS.some((p) => p.id === (item as QuoteItem).productId)
       )
       .map((item) => ({ productId: item.productId, qty: Math.min(999, Math.floor(item.qty)) }));
@@ -440,9 +441,6 @@ function triggerFieldError(wrapId: string, shakeId: string, fieldEl: HTMLElement
   const shakeBox = document.getElementById(shakeId);
   if (!wrap || !shakeBox || !fieldEl) return;
 
-  const existingTimer = inputRevertTimers.get(wrapId);
-  if (existingTimer) window.clearTimeout(existingTimer);
-
   wrap.classList.add('is-error');
   shakeBox.classList.add('is-error');
   fieldEl.classList.add('is-error');
@@ -460,8 +458,6 @@ function triggerFieldError(wrapId: string, shakeId: string, fieldEl: HTMLElement
   };
 
   fieldEl.addEventListener('input', clearError, { once: true });
-  const revertId = window.setTimeout(clearError, 4200);
-  inputRevertTimers.set(wrapId, revertId);
 }
 
 /**
@@ -545,14 +541,14 @@ async function syncLiveBcvRate(): Promise<void> {
     if (!res.ok) throw new Error('HTTP status error');
     const data = (await res.json()) as { promedio?: number; fechaActualizacion?: string };
 
-    if (typeof data.promedio === 'number' && data.promedio > 1) {
+    if (typeof data.promedio === 'number' && Number.isFinite(data.promedio) && data.promedio > 1 && data.fechaActualizacion && Number.isFinite(Date.parse(data.fechaActualizacion)) && Date.now() - Date.parse(data.fechaActualizacion) < 96 * 60 * 60 * 1000 && Date.parse(data.fechaActualizacion) <= Date.now() + 5 * 60 * 1000) {
       bcvRate = Number(data.promedio.toFixed(2));
       bcvIsLive = true;
       const formatted = `Bs. ${formatRateVe(bcvRate)}`;
       setAnimatedDigits(rateValEl, formatted);
-      if (rateSourceEl) rateSourceEl.textContent = '· Oficial BCV hoy';
+      if (rateSourceEl) rateSourceEl.textContent = `· Actualizada ${new Intl.DateTimeFormat('es-VE', { day: '2-digit', month: 'short', timeZone: 'America/Caracas' }).format(new Date(data.fechaActualizacion))}`;
       if (heroLedgerVal) heroLedgerVal.textContent = formatted;
-      if (heroLedgerNote) heroLedgerNote.textContent = 'Tasa oficial sincronizada al día';
+      if (heroLedgerNote) heroLedgerNote.textContent = 'Referencia BCV consultada · confirma la tasa al comprar';
       refreshAllVisibleBsAmounts();
       return;
     }
@@ -562,9 +558,9 @@ async function syncLiveBcvRate(): Promise<void> {
     bcvIsLive = false;
     const fallbackFormatted = `Bs. ${formatRateVe(bcvRate)}`;
     if (rateValEl) rateValEl.textContent = fallbackFormatted;
-    if (rateSourceEl) rateSourceEl.textContent = '· Ref. mostrador';
+    if (rateSourceEl) rateSourceEl.textContent = '· Referencia sin actualizar';
     if (heroLedgerVal) heroLedgerVal.textContent = fallbackFormatted;
-    if (heroLedgerNote) heroLedgerNote.textContent = 'Referencia local · se valida en caja';
+    if (heroLedgerNote) heroLedgerNote.textContent = 'Sin conexión a la tasa actual · confirma en tienda';
     refreshAllVisibleBsAmounts();
   }
 }
@@ -573,7 +569,7 @@ function refreshAllVisibleBsAmounts(): void {
   document.querySelectorAll<HTMLElement>('[data-bs-usd]').forEach((el) => {
     const usd = Number(el.dataset.bsUsd ?? '0');
     if (Number.isFinite(usd)) {
-      el.textContent = `Bs. ${formatBs(usd)} BCV`;
+      el.textContent = bcvIsLive ? `Bs. ${formatBs(usd)} BCV` : 'Bs. por confirmar';
     }
   });
   updateHeroCalcResult(true);
@@ -585,59 +581,6 @@ function refreshAllVisibleBsAmounts(): void {
 /* ==========================================================================
    5. HERO SHOWCASE (SLIDING TABS + REAL PHOTOGRAPHY)
    ========================================================================== */
-function initHeroShowcase(): void {
-  const tabsBar = document.getElementById('hero-showcase-tabs');
-  const imgEl = document.getElementById('hero-showcase-img') as HTMLImageElement | null;
-  const titleEl = document.getElementById('hero-showcase-title');
-  const captionEl = document.getElementById('hero-showcase-caption');
-  const metaEl = document.getElementById('hero-showcase-meta') as SoftSwapElement | null;
-  const actionBtn = document.getElementById('hero-showcase-action');
-  const actionLabel = document.getElementById('hero-showcase-action-label');
-
-  if (!tabsBar || !imgEl || !titleEl || !captionEl || !metaEl || !actionBtn || !actionLabel) return;
-
-  HERO_SLIDES.forEach((slide, idx) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 't-tab !min-h-[34px] !px-3 !py-1 !text-xs';
-    btn.setAttribute('role', 'tab');
-    btn.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
-    btn.dataset.slideIdx = String(idx);
-    btn.textContent = slide.tabLabel;
-    tabsBar.appendChild(btn);
-  });
-
-  const applySlide = (index: number) => {
-    const slide = HERO_SLIDES[index] ?? HERO_SLIDES[0];
-    activeHeroSlideIndex = index;
-    imgEl.style.opacity = '0.35';
-    window.setTimeout(() => {
-      imgEl.src = slide.image;
-      imgEl.alt = slide.alt;
-      imgEl.style.opacity = '1';
-    }, 90);
-    titleEl.textContent = slide.title;
-    captionEl.textContent = slide.caption;
-    softSwap(metaEl, slide.meta);
-    actionLabel.textContent = slide.actionLabel;
-  };
-
-  setupSlidingTabs(tabsBar, (tab) => {
-    const idx = Number(tab.dataset.slideIdx ?? '0');
-    applySlide(idx);
-  });
-
-  actionBtn.addEventListener('click', () => {
-    const slide = HERO_SLIDES[activeHeroSlideIndex] ?? HERO_SLIDES[0];
-    if (slide.actionTarget === 'tienda') {
-      switchView('tienda');
-    } else if (slide.actionTarget === 'eventos') {
-      navigateToSectionOnHome('landing-eventos');
-    } else {
-      navigateToSectionOnHome('landing-mapa-sedes');
-    }
-  });
-}
 
 /* ==========================================================================
    6. ASYMMETRIC 5-WORLDS ARCHITECTURAL MOSAIC (SPOTLIGHT + COLOR BEAMS)
@@ -646,87 +589,7 @@ function renderWorldsMosaic(): void {
   const grid = document.getElementById('worlds-mosaic-grid');
   if (!grid) return;
 
-  const spanMap: Record<string, string> = {
-    ferreteria: 'md:col-span-6 lg:col-span-6 lg:row-span-2 min-h-[330px] lg:min-h-[440px]',
-    construccion: 'md:col-span-6 lg:col-span-6 min-h-[215px]',
-    hogar: 'md:col-span-3 lg:col-span-3 min-h-[215px]',
-    agro: 'md:col-span-3 lg:col-span-3 min-h-[215px]',
-    tecnologia: 'md:col-span-3 lg:col-span-6 min-h-[205px]',
-    electricidad: 'md:col-span-3 lg:col-span-6 min-h-[205px]',
-  };
-
-  const beamColorMap: Record<Category['tone'], string> = {
-    blue: 'bg-[#09569A]',
-    red: 'bg-[#DF2726]',
-    teal: 'bg-[#3B9B8E]',
-  };
-
-  const badgeBgMap: Record<Category['tone'], string> = {
-    blue: 'bg-[#09569A]',
-    red: 'bg-[#DF2726]',
-    teal: 'bg-[#216E63]',
-  };
-
-  grid.innerHTML = CATEGORIES.map((cat, index) => {
-    const spanClasses = spanMap[cat.id] ?? 'md:col-span-3 lg:col-span-4 min-h-[215px]';
-    const countInCatalog = PRODUCTS.filter((p) => p.category === cat.slug).length;
-    const isFeatured = index === 0;
-    const beamClass = beamColorMap[cat.tone];
-    const badgeClass = badgeBgMap[cat.tone];
-
-    return `
-      <button
-        type="button"
-        data-stagger-card
-        data-world-slug="${cat.slug}"
-        class="mc-spotlight t-learn group relative overflow-hidden rounded-[16px] bg-[#053563] text-left text-white p-6 sm:p-7 flex flex-col justify-between shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] cursor-pointer ${spanClasses}"
-      >
-        <div class="absolute inset-0 mc-photo-frame">
-          <img
-            src="${cat.image}"
-            alt="${escapeHtml(cat.name)}"
-            loading="lazy"
-            class="${isFeatured ? 'js-parallax-img ' : ''}w-full h-full object-cover opacity-65 group-hover:scale-[1.04] transition-transform duration-[400ms]"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-[#051B33]/95 via-[#051B33]/60 to-[#051B33]/20"></div>
-        </div>
-
-        <div class="relative z-10 w-full flex items-center justify-between gap-3">
-          <span class="w-10 h-10 rounded-[8px] ${badgeClass} text-white flex items-center justify-center shadow-[var(--shadow-card)]">
-            ${cat.iconSvg}
-          </span>
-          <span class="font-mono text-xs font-semibold text-white/90 bg-[#111924]/70 px-2.5 py-1 rounded-[6px] tabular-nums">
-            ${countInCatalog} ref. BCV
-          </span>
-        </div>
-
-        <div class="relative z-10 w-full mt-8">
-          <h3 class="text-white ${isFeatured ? '!text-2xl sm:!text-3xl' : '!text-xl'} font-extrabold">
-            ${escapeHtml(cat.name)}
-          </h3>
-          <p class="mt-1.5 text-sm text-[#DCEBFA] max-w-[46ch] line-clamp-2">
-            ${escapeHtml(cat.subtitle)}
-          </p>
-          <div class="mt-4 pt-3 border-t border-white/20 flex items-center justify-between gap-2 text-xs font-semibold">
-            <span class="font-mono text-[#F5B800] tabular-nums">${escapeHtml(cat.itemCountLabel)}</span>
-            <span class="inline-flex items-center gap-1 text-white font-bold">
-              <span>Explorar</span>
-              <span class="t-learn-chevron" aria-hidden="true">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                  <path class="t-learn-arm t-learn-arm-top" d="M6 4L10 8" />
-                  <path class="t-learn-arm t-learn-arm-bot" d="M10 8L6 12" />
-                </svg>
-              </span>
-            </span>
-          </div>
-        </div>
-
-        <span class="mc-world-beam ${beamClass}" aria-hidden="true"></span>
-      </button>
-    `;
-  }).join('');
-
-  bindSpotlightCards(grid);
+  grid.innerHTML = CATEGORIES.map((cat) => `<button type="button" class="mc-department" data-world-slug="${cat.slug}"><div><h3>${escapeHtml(cat.name)}</h3><p>${escapeHtml(cat.subtitle)}</p></div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>`).join('');
 
   grid.querySelectorAll<HTMLButtonElement>('[data-world-slug]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -736,7 +599,7 @@ function renderWorldsMosaic(): void {
   });
 }
 
-type Category = (typeof CATEGORIES)[number];
+
 
 /* ==========================================================================
    7. BCV REFERENCE CATALOG & PRODUCT CARDS (WITH SUCCESS CHECK + TILT)
@@ -745,7 +608,7 @@ function createProductCardMarkup(product: Product): string {
   const existingQty = quoteItems.find((item) => item.productId === product.id)?.qty ?? 0;
   const offerPill =
     product.isOffer && product.offerLabel
-      ? `<span class="bg-[#DF2726] text-white text-xs font-bold px-2 py-0.5 rounded-[6px] tabular-nums">${escapeHtml(product.offerLabel)}</span>`
+      ? `<span class="bg-[#BD1E1E] text-white text-xs font-bold px-2 py-0.5 rounded-[6px] tabular-nums">${escapeHtml(product.offerLabel)}</span>`
       : '';
   const oldPriceHtml =
     typeof product.oldPrice === 'number'
@@ -755,15 +618,16 @@ function createProductCardMarkup(product: Product): string {
   return `
     <div class="t-tilt h-full" data-stagger-card>
       <article class="t-tilt-card mc-card mc-card--interactive mc-concentric-lg h-full flex flex-col">
-        <figure class="mc-concentric-lg-inner mc-photo-frame relative aspect-[4/3] bg-[#ECEAE3]">
+        <figure class="mc-concentric-lg-inner mc-photo-frame relative aspect-[4/3] bg-[#E8F0F6]">
           <img
             src="${product.image}"
-            alt="${escapeHtml(product.name)}"
+            alt="Imagen de referencia: ${escapeHtml(product.name)}"
             loading="lazy"
             width="600"
             height="450"
             class="w-full h-full object-cover"
           />
+          <figcaption class="mc-photo-note">Imagen de referencia</figcaption>
           <div class="absolute top-2 left-2 right-2 flex items-center justify-between gap-2 pointer-events-none">
             <span class="bg-[#111924]/85 text-white font-mono text-xs font-semibold px-2 py-0.5 rounded-[6px] tabular-nums">
               ${escapeHtml(product.sku)}
@@ -795,7 +659,7 @@ function createProductCardMarkup(product: Product): string {
               .join('')}
           </ul>
 
-          <div class="mt-auto pt-3.5 border-t border-[#D8D5CC] flex items-end justify-between gap-2 tabular-nums">
+          <div class="mt-auto pt-3.5 border-t border-[#C9D5DF] flex items-end justify-between gap-2 tabular-nums">
             <div>
               <div class="flex items-baseline">
                 <strong class="font-display text-xl font-extrabold text-[#111924] leading-none">
@@ -807,7 +671,7 @@ function createProductCardMarkup(product: Product): string {
                 data-bs-usd="${product.price}"
                 class="block mt-1 font-mono text-xs font-semibold text-[#216E63]"
               >
-                Bs. ${formatBs(product.price)} BCV
+                ${bcvIsLive ? `Bs. ${formatBs(product.price)} BCV` : 'Bs. por confirmar'}
               </span>
             </div>
 
@@ -871,8 +735,8 @@ function updateCatalogMetaSummary(countOverride?: number): void {
   if (!metaEl) return;
   const count = countOverride ?? getFilteredCatalogProducts().length;
   const rateText = formatRateVe(bcvRate);
-  const statusTag = bcvIsLive ? 'BCV oficial' : 'tasa ref.';
-  metaEl.textContent = `Mostrando ${count} ${count === 1 ? 'producto' : 'productos'} · Paridad Bs. ${rateText} / USD (${statusTag})`;
+  const rateStatus = bcvIsLive ? `Referencia BCV: Bs. ${rateText} / USD` : 'Tasa sin actualizar: confirma los importes en Bs. con tu sede';
+  metaEl.textContent = `${count} ${count === 1 ? 'producto' : 'productos'} · ${rateStatus}`;
 }
 
 function renderCatalogGrid(animate = false): void {
@@ -987,6 +851,9 @@ function getQuoteSubtotalUsd(): number {
 function addToQuote(productId: string, delta = 1): void {
   const product = PRODUCTS.find((p) => p.id === productId);
   if (!product) return;
+  clearedQuote = null;
+  const undoButton = document.getElementById('btn-undo-clear-quote');
+  if (undoButton) undoButton.hidden = true;
 
   const existing = quoteItems.find((i) => i.productId === productId);
   if (existing) {
@@ -1033,7 +900,7 @@ function syncQuoteCountersAndCards(retriggeredProductId?: string): void {
   }
   if (dockCount) dockCount.textContent = `${totalUnits} ${totalUnits === 1 ? 'unidad' : 'unidades'}`;
   if (dockUsd) dockUsd.textContent = formatUsd(subtotalUsd);
-  if (dockBs) dockBs.textContent = `Bs. ${formatBs(subtotalUsd)}`;
+  if (dockBs) dockBs.textContent = bcvIsLive ? `Bs. ${formatBs(subtotalUsd)}` : 'Bs. por confirmar';
 
   document.querySelectorAll<HTMLButtonElement>('[data-add-quote]').forEach((btn) => {
     const id = btn.dataset.addQuote ?? '';
@@ -1076,6 +943,11 @@ function renderQuoteDrawerContents(): void {
   const clearBtn = document.getElementById('btn-clear-quote') as HTMLButtonElement | null;
 
   if (!container || !totalUsdEl || !totalBsEl) return;
+  const rateNote = document.getElementById('quote-rate-note');
+  if (rateNote) rateNote.textContent = bcvIsLive ? 'Referencia BCV consultada. Confirma el importe final con tu sede.' : 'Tasa sin actualizar. La sede confirmará el equivalente en bolívares.';
+  const focusedStep = document.activeElement instanceof HTMLElement && container.contains(document.activeElement)
+    ? { id: document.activeElement.dataset.quoteStep, direction: document.activeElement.dataset.stepDir }
+    : null;
 
   if (quoteItems.length === 0) {
     container.innerHTML = `
@@ -1095,6 +967,7 @@ function renderQuoteDrawerContents(): void {
     totalBsEl.textContent = 'Bs. 0,00';
     if (sendBtn) sendBtn.disabled = true;
     if (clearBtn) clearBtn.disabled = true;
+    if (focusedStep) document.getElementById('btn-empty-drawer-go-catalog')?.focus();
 
     document.getElementById('btn-empty-drawer-go-catalog')?.addEventListener('click', () => {
       closeQuoteDrawer();
@@ -1125,7 +998,7 @@ function renderQuoteDrawerContents(): void {
               ${escapeHtml(product.sku)} · ${formatUsd(product.price)} c/u
             </p>
             <p class="mt-1 font-mono text-xs font-semibold text-[#216E63] tabular-nums">
-              Subtotal: ${formatUsd(lineUsd)} (Bs. ${formatBs(lineUsd)})
+              Subtotal: ${formatUsd(lineUsd)} · ${bcvIsLive ? `Bs. ${formatBs(lineUsd)}` : 'Bs. por confirmar'}
             </p>
           </div>
 
@@ -1135,7 +1008,7 @@ function renderQuoteDrawerContents(): void {
               data-quote-step="${product.id}"
               data-step-dir="-1"
               aria-label="Disminuir cantidad"
-              class="w-11 h-11 rounded-[8px] bg-[#ECEAE3] hover:bg-[#D8D5CC] active:scale-[0.96] transition-transform duration-[150ms] text-[#111924] font-bold flex items-center justify-center cursor-pointer"
+              class="w-11 h-11 rounded-[8px] bg-[#E8F0F6] hover:bg-[#C9D5DF] active:scale-[0.96] transition-transform duration-[var(--duration-quick)] text-[#111924] font-bold flex items-center justify-center cursor-pointer"
             >
               −
             </button>
@@ -1145,7 +1018,7 @@ function renderQuoteDrawerContents(): void {
               data-quote-step="${product.id}"
               data-step-dir="1"
               aria-label="Aumentar cantidad"
-              class="w-11 h-11 rounded-[8px] bg-[#ECEAE3] hover:bg-[#D8D5CC] active:scale-[0.96] transition-transform duration-[150ms] text-[#111924] font-bold flex items-center justify-center cursor-pointer"
+              class="w-11 h-11 rounded-[8px] bg-[#E8F0F6] hover:bg-[#C9D5DF] active:scale-[0.96] transition-transform duration-[var(--duration-quick)] text-[#111924] font-bold flex items-center justify-center cursor-pointer"
             >
               +
             </button>
@@ -1156,7 +1029,27 @@ function renderQuoteDrawerContents(): void {
     .join('');
 
   totalUsdEl.textContent = formatUsd(subtotalUsd);
-  totalBsEl.textContent = `Bs. ${formatBs(subtotalUsd)} (BCV Bs. ${formatRateVe(bcvRate)})`;
+  totalBsEl.textContent = bcvIsLive ? `Bs. ${formatBs(subtotalUsd)}` : 'Por confirmar';
+  if (focusedStep?.id) {
+    const replacement = Array.from(container.querySelectorAll<HTMLButtonElement>('[data-quote-step]')).find(button => button.dataset.quoteStep === focusedStep.id && button.dataset.stepDir === focusedStep.direction);
+    (replacement ?? container.querySelector<HTMLButtonElement>('[data-quote-step]') ?? document.getElementById('btn-close-quote-drawer'))?.focus();
+  }
+}
+
+const modalInertState = new Map<HTMLElement, boolean>();
+let quoteCloseTimer: number | undefined;
+let collaboratorCloseTimer: number | undefined;
+function setModalIsolation(root: HTMLElement, open: boolean): void {
+  root.inert = !open;
+  if (open) {
+    for (const element of Array.from(document.body.children)) {
+      if (!(element instanceof HTMLElement) || element === root || ['SCRIPT', 'STYLE'].includes(element.tagName)) continue;
+      modalInertState.set(element, element.inert); element.inert = true;
+    }
+  } else {
+    modalInertState.forEach((inert, element) => { element.inert = inert; });
+    modalInertState.clear();
+  }
 }
 
 function openQuoteDrawer(): void {
@@ -1166,6 +1059,8 @@ function openQuoteDrawer(): void {
   const closeBtn = document.getElementById('btn-close-quote-drawer');
   if (!root || !backdrop || !panel) return;
 
+  window.clearTimeout(quoteCloseTimer);
+  setModalIsolation(root, true);
   lastFocusedBeforeDrawer = document.activeElement as HTMLElement | null;
   root.classList.remove('pointer-events-none');
   root.setAttribute('aria-hidden', 'false');
@@ -1173,8 +1068,9 @@ function openQuoteDrawer(): void {
   backdrop.classList.add('is-open');
   panel.setAttribute('data-open', 'true');
   document.body.style.overflow = 'hidden';
+  document.getElementById('app-toast')?.classList.remove('is-open');
 
-  window.setTimeout(() => closeBtn?.focus(), 60);
+  closeBtn?.focus({ preventScroll: true });
 }
 
 function closeQuoteDrawer(): void {
@@ -1188,7 +1084,8 @@ function closeQuoteDrawer(): void {
   backdrop.classList.add('is-closing');
   document.body.style.overflow = '';
 
-  window.setTimeout(() => {
+  quoteCloseTimer = window.setTimeout(() => {
+    setModalIsolation(root, false);
     backdrop.classList.remove('is-closing');
     root.classList.add('pointer-events-none');
     root.setAttribute('aria-hidden', 'true');
@@ -1217,7 +1114,7 @@ function sendQuoteListToWhatsapp(): void {
     ...lines,
     '',
     `Total referencial USD: ${formatUsd(subtotalUsd)}`,
-    `Equivalente BCV (Bs. ${formatRateVe(bcvRate)}): Bs. ${formatBs(subtotalUsd)}`,
+    bcvIsLive ? `Equivalente referencial BCV (Bs. ${formatRateVe(bcvRate)}): Bs. ${formatBs(subtotalUsd)}` : 'Tasa sin actualizar: por favor, confirma el equivalente en bolívares.',
     'Quedo atento a la confirmación de inventario en mostrador.',
   ].join('\n');
 
@@ -1250,6 +1147,18 @@ function syncBranchSelectorsValue(): void {
   if (quoteSelect && quoteSelect.value !== selectedStoreId) quoteSelect.value = selectedStoreId;
   if (contactSelect && contactSelect.value !== selectedStoreId) contactSelect.value = selectedStoreId;
   updateContactRouteHint();
+}
+
+function selectBranchFromForm(id: string): void {
+  saveSelectedBranchId(id);
+  // A previous map filter must never override the recipient selected in a form.
+  activeStoreStateFilter = 'Todas';
+  document.querySelectorAll<HTMLButtonElement>('#store-state-tabs .t-tab').forEach(tab => {
+    tab.setAttribute('aria-selected', String(tab.dataset.stateFilter === 'Todas'));
+  });
+  syncStoreTabsPill();
+  syncBranchSelectorsValue();
+  renderStoreLocator(false, false);
 }
 
 function getFilteredStores(): StoreBranch[] {
@@ -1324,7 +1233,7 @@ function renderStoreLocator(animateList = false, animateDetail = false): void {
 
           <span
             class="shrink-0 w-8 h-8 rounded-[8px] flex items-center justify-center ${
-              isSelected ? 'bg-[#09569A] text-white' : 'bg-[#ECEAE3] text-[#435060]'
+              isSelected ? 'bg-[#09569A] text-white' : 'bg-[#E8F0F6] text-[#435060]'
             }"
             aria-hidden="true"
           >
@@ -1359,20 +1268,20 @@ function renderStoreLocator(animateList = false, animateDetail = false): void {
       <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
         liveStatus.isOpen
           ? 'bg-[#216E63] text-white'
-          : 'bg-[#ECEAE3] text-[#435060]'
+          : 'bg-[#E8F0F6] text-[#435060]'
       }">
         <span>${liveStatus.label}</span>
       </span>
     </div>
 
-    <div class="mt-4 py-3.5 border-y border-[#D8D5CC] grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm tabular-nums">
+    <div class="mt-4 py-3.5 border-y border-[#C9D5DF] grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm tabular-nums">
       <div>
         <p class="text-xs font-bold uppercase tracking-wider text-[#5E6B7C]">Horario Semanal y Dominical</p>
         <p class="mt-1 font-semibold text-[#111924]">${escapeHtml(activeBranch.hoursWeek)}</p>
         <p class="mt-0.5 text-[#216E63] font-semibold">${escapeHtml(activeBranch.hoursSunday)}</p>
       </div>
 
-      <div class="sm:border-l sm:border-[#D8D5CC] sm:pl-4">
+      <div class="sm:border-l sm:border-[#C9D5DF] sm:pl-4">
         <p class="text-xs font-bold uppercase tracking-wider text-[#5E6B7C]">Contacto Regional y Servicios</p>
         <p class="mt-1 font-mono font-semibold text-[#09569A]">Tel / WhatsApp: ${escapeHtml(activeBranch.phone)}</p>
         <p class="mt-0.5 text-xs text-[#435060]">${activeBranch.services.map(escapeHtml).join(' · ')}</p>
@@ -1434,6 +1343,12 @@ function renderStoreLocator(animateList = false, animateDetail = false): void {
       saveSelectedBranchId(id);
       syncBranchSelectorsValue();
       renderStoreLocator(false, true);
+      if (window.matchMedia('(max-width: 1023px)').matches) {
+        requestAnimationFrame(() => {
+          detailPanel.focus({ preventScroll: true });
+          detailPanel.scrollIntoView({ behavior: 'instant', block: 'start' });
+        });
+      }
     });
   });
 }
@@ -1491,6 +1406,7 @@ async function initStoreMap(): Promise<void> {
 }
 
 function updateMapFocus(branch: StoreBranch): void {
+  if (!mapsInitialized) return;
   const iframeEl = document.getElementById('store-map-iframe') as HTMLIFrameElement | null;
   if (googleMapInstance) {
     googleMapInstance.panTo({ lat: branch.lat, lng: branch.lng });
@@ -1630,7 +1546,7 @@ function renderEventsAndFaq(): void {
         </div>
       </article>
 
-      <div class="lg:col-span-6 flex flex-col justify-between divide-y divide-[#D8D5CC] border-y border-[#D8D5CC]">
+      <div class="lg:col-span-6 flex flex-col justify-between divide-y divide-[#C9D5DF] border-y border-[#C9D5DF]">
         ${secondary
           .map((evt) => {
             const waUrl = `https://wa.me/584226264623?text=${encodeURIComponent(
@@ -1674,18 +1590,18 @@ function renderEventsAndFaq(): void {
           <button
             type="button"
             class="t-acc-head w-full py-4 text-left flex items-center justify-between gap-4 cursor-pointer"
-            aria-expanded="${index === 0 ? 'true' : 'false'}"
+            aria-expanded="${index === 0 ? 'true' : 'false'}" aria-controls="answer-${faq.id}"
           >
             <span class="font-display text-base sm:text-lg font-bold text-[#111924]">
               ${escapeHtml(faq.question)}
             </span>
-            <span class="t-acc-chevron shrink-0 w-8 h-8 rounded-[8px] bg-[#ECEAE3] text-[#111924] items-center justify-center" aria-hidden="true">
+            <span class="t-acc-chevron shrink-0 w-8 h-8 rounded-[8px] bg-[#E8F0F6] text-[#111924] items-center justify-center" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 6.5L8 10.5L12 6.5" />
               </svg>
             </span>
           </button>
-          <div class="t-acc-panel">
+          <div class="t-acc-panel" id="answer-${faq.id}" aria-hidden="${index === 0 ? 'false' : 'true'}">
             <div class="t-acc-panel-inner">
               <p class="pb-5 pr-8 max-w-[65ch] text-sm sm:text-base text-[#435060] leading-relaxed">
                 ${escapeHtml(faq.answer)}
@@ -1702,6 +1618,7 @@ function renderEventsAndFaq(): void {
         const isOpen = acc.getAttribute('data-open') === 'true';
         acc.setAttribute('data-open', String(!isOpen));
         head.setAttribute('aria-expanded', String(!isOpen));
+        acc.querySelector('.t-acc-panel')?.setAttribute('aria-hidden', String(isOpen));
         window.setTimeout(refreshScrollAnimations, 270);
       });
     });
@@ -1729,9 +1646,7 @@ function initContactForm(): void {
   const clearBtn = document.getElementById('btn-contact-clear');
 
   branchSelect?.addEventListener('change', () => {
-    saveSelectedBranchId(branchSelect.value);
-    syncBranchSelectorsValue();
-    renderStoreLocator(false, false);
+    selectBranchFromForm(branchSelect.value);
   });
 
   clearBtn?.addEventListener('click', () => {
@@ -1746,6 +1661,8 @@ function initContactForm(): void {
     const nameVal = (nameInput?.value ?? '').trim();
     const msgVal = (msgInput?.value ?? '').trim();
 
+    nameInput?.setAttribute('aria-invalid', String(nameVal.length < 2));
+    msgInput?.setAttribute('aria-invalid', String(msgVal.length < 4));
     let hasError = false;
     if (nameVal.length < 2) {
       triggerFieldError('wrap-contact-name', 'shake-contact-name', nameInput);
@@ -1774,8 +1691,11 @@ function initContactForm(): void {
     const waUrl = `https://wa.me/${branch.whatsappNumber}?text=${encodeURIComponent(
       textLines.join('\n')
     )}`;
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
-    showToast(`Abriendo WhatsApp de ${branch.city}. Tu texto se mantiene guardado.`);
+    const continuation = document.getElementById('thanks-whatsapp') as HTMLAnchorElement | null;
+    if (continuation) { continuation.href = waUrl; continuation.hidden = false; }
+    const empty = document.getElementById('thanks-empty');
+    if (empty) empty.hidden = true;
+    switchView('gracias');
   });
 }
 
@@ -1789,6 +1709,8 @@ function openCollaboratorModal(): void {
   const emailInput = document.getElementById('collab-email') as HTMLInputElement | null;
   if (!root || !backdrop || !dialog) return;
 
+  window.clearTimeout(collaboratorCloseTimer);
+  setModalIsolation(root, true);
   lastFocusedBeforeModal = document.activeElement as HTMLElement | null;
   root.classList.remove('pointer-events-none');
   root.setAttribute('aria-hidden', 'false');
@@ -1798,7 +1720,7 @@ function openCollaboratorModal(): void {
   dialog.classList.add('is-open');
   document.body.style.overflow = 'hidden';
 
-  window.setTimeout(() => emailInput?.focus(), 60);
+  emailInput?.focus({ preventScroll: true });
 }
 
 function closeCollaboratorModal(): void {
@@ -1813,7 +1735,8 @@ function closeCollaboratorModal(): void {
   backdrop.classList.add('is-closing');
   document.body.style.overflow = '';
 
-  window.setTimeout(() => {
+  collaboratorCloseTimer = window.setTimeout(() => {
+    setModalIsolation(root, false);
     dialog.classList.remove('is-closing');
     backdrop.classList.remove('is-closing');
     root.classList.add('pointer-events-none');
@@ -1884,7 +1807,7 @@ function renderCursosView(animatePanel = false): void {
             <p class="mt-2 text-sm text-[#435060] line-clamp-2">${escapeHtml(course.description)}</p>
           </div>
 
-          <div class="pt-3 border-t border-[#D8D5CC] flex items-center justify-between text-xs font-bold text-[#09569A]">
+          <div class="pt-3 border-t border-[#C9D5DF] flex items-center justify-between text-xs font-bold text-[#09569A]">
             <span>${escapeHtml(course.duration ?? 'Autoformativo')}</span>
             <span>Ver ficha →</span>
           </div>
@@ -1902,7 +1825,7 @@ function renderCursosView(animatePanel = false): void {
       ${escapeHtml(activeCourse.description)}
     </p>
 
-    <dl class="mt-5 py-3.5 border-y border-[#D8D5CC] space-y-2 text-xs tabular-nums">
+    <dl class="mt-5 py-3.5 border-y border-[#C9D5DF] space-y-2 text-xs tabular-nums">
       <div class="flex justify-between">
         <dt class="text-[#5E6B7C] font-semibold">Unidades / Pasos:</dt>
         <dd class="font-mono font-bold text-[#111924]">${escapeHtml(activeCourse.steps)}</dd>
@@ -2060,7 +1983,7 @@ function closeMobileDropdown(): void {
   iconClose?.classList.add('hidden');
   dropdown.classList.remove('is-open');
   dropdown.classList.add('is-closing');
-  window.setTimeout(() => dropdown.classList.remove('is-closing'), 150);
+  window.setTimeout(() => dropdown.classList.remove('is-closing'), parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dropdown-close-dur')) || 150);
 }
 
 function syncNavActiveStates(activeView: AppView, highlightSedes = false): void {
@@ -2094,7 +2017,7 @@ function switchView(nextView: AppView, skipScrollTop = false, useTransition = tr
   closeMobileDropdown();
 
   const applyDomSwitch = () => {
-    const views: AppView[] = ['inicio', 'tienda', 'nosotros', 'contacto', 'cursos'];
+    const views = Object.keys(PAGES) as AppView[];
     views.forEach((v) => {
       const el = document.getElementById(`view-${v}`);
       if (el) {
@@ -2102,15 +2025,18 @@ function switchView(nextView: AppView, skipScrollTop = false, useTransition = tr
       }
     });
 
-    const targetHash = `#/${nextView}`;
-    if (window.location.hash !== targetHash) {
-      window.history.replaceState(null, '', targetHash);
+    const targetPath = PAGES[nextView].path;
+    if (nextView !== 'no-encontrado' && (window.location.pathname !== targetPath || window.location.hash.startsWith('#/'))) {
+      window.history.pushState(null, '', targetPath);
     }
+    applyPageMetadata(nextView);
+    const heading = document.querySelector<HTMLElement>(`#view-${nextView} h1`);
+    if (heading && prevView !== nextView) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
 
     syncNavActiveStates(nextView, false);
 
     if (!skipScrollTop) {
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
     requestAnimationFrame(() => {
@@ -2160,13 +2086,7 @@ function navigateToSectionOnHome(sectionId: string): void {
   }
 }
 
-function parseHashRoute(): AppView {
-  const raw = window.location.hash.replace(/^#\/?/, '').trim().toLowerCase();
-  if (raw === 'tienda' || raw === 'nosotros' || raw === 'contacto' || raw === 'cursos') {
-    return raw;
-  }
-  return 'inicio';
-}
+function parseHashRoute(): AppView { return resolveRoute(window.location.pathname, window.location.hash); }
 
 /* ==========================================================================
    14. GLOBAL EVENT DELEGATION & BOOTSTRAP
@@ -2223,18 +2143,31 @@ function bindGlobalInteractions(): void {
   document.getElementById('btn-send-quote-whatsapp')?.addEventListener('click', sendQuoteListToWhatsapp);
 
   document.getElementById('btn-clear-quote')?.addEventListener('click', () => {
+    clearedQuote = quoteItems.map(item => ({ ...item }));
     quoteItems = [];
     saveQuoteItems();
     syncQuoteCountersAndCards();
     renderQuoteDrawerContents();
+    const undo = document.getElementById('btn-undo-clear-quote');
+    if (undo) { undo.hidden = false; undo.focus(); }
     showToast('Lista de cotización vaciada.');
+  });
+
+  document.getElementById('btn-undo-clear-quote')?.addEventListener('click', () => {
+    if (!clearedQuote) return;
+    quoteItems = clearedQuote;
+    clearedQuote = null;
+    const undo = document.getElementById('btn-undo-clear-quote');
+    if (undo) undo.hidden = true;
+    saveQuoteItems();
+    syncQuoteCountersAndCards();
+    renderQuoteDrawerContents();
+    document.getElementById('btn-clear-quote')?.focus();
   });
 
   const quoteBranchSelect = document.getElementById('quote-branch-select') as HTMLSelectElement | null;
   quoteBranchSelect?.addEventListener('change', () => {
-    saveSelectedBranchId(quoteBranchSelect.value);
-    syncBranchSelectorsValue();
-    renderStoreLocator(false, false);
+    selectBranchFromForm(quoteBranchSelect.value);
   });
 
   document.addEventListener('click', (e) => {
@@ -2257,6 +2190,15 @@ function bindGlobalInteractions(): void {
   });
 
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      const root = document.querySelector<HTMLElement>('#quote-drawer-root[aria-hidden="false"], #collaborator-modal-root[aria-hidden="false"]');
+      if (root) {
+        const focusable = Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select, textarea, [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
+        const first = focusable[0], last = focusable.at(-1);
+        if (e.shiftKey && (document.activeElement === first || !root.contains(document.activeElement))) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !root.contains(document.activeElement))) { e.preventDefault(); first?.focus(); }
+      }
+    }
     if (e.key !== 'Escape') return;
     const modalDialog = document.getElementById('collaborator-modal-dialog');
     if (modalDialog?.classList.contains('is-open')) {
@@ -2293,7 +2235,6 @@ function bootstrap(): void {
   window.setInterval(updateVenezuelaClock, 30000);
 
   populateBranchSelectors();
-  initHeroShowcase();
   initHeroBcvCalculator();
   renderWorldsMosaic();
   renderHomeFeaturedProducts();
@@ -2301,7 +2242,13 @@ function bootstrap(): void {
   renderCatalogGrid(false);
   initStoreLocatorControls();
   renderStoreLocator(false, false);
-  void initStoreMap();
+  const mapFrame = document.getElementById('store-map-iframe');
+  if (mapFrame?.parentElement) {
+    const consent = document.createElement('div'); consent.className = 'mc-map-consent';
+    consent.innerHTML = '<p>Explora la ubicación de la sede. Al cargar el mapa, conectarás con Google Maps.</p><button class="mc-btn mc-btn-secondary" type="button">Cargar mapa</button>';
+    mapFrame.parentElement.style.position = 'relative'; mapFrame.parentElement.append(consent);
+    consent.querySelector('button')?.addEventListener('click', () => { consent.remove(); void initStoreMap(); }, { once: true });
+  }
   renderEventsAndFaq();
   initContactForm();
   initCollaboratorFlows();
@@ -2312,10 +2259,9 @@ function bootstrap(): void {
   bindGlobalInteractions();
 
   const initialRoute = parseHashRoute();
-  if (initialRoute !== 'inicio') {
-    switchView(initialRoute, true, false);
-  }
+  switchView(initialRoute, true, false);
 
+  window.addEventListener('popstate', () => switchView(parseHashRoute(), false, false));
   initGsapAnimations();
   void syncLiveBcvRate();
 }

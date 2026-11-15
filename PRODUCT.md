@@ -63,3 +63,7 @@ Hiperferretería venezolana de gran formato (*"¡Para toda la Familia!"*) que re
 ## Accessibility & Inclusion
 
 - Cumplimiento mínimo **WCAG 2.1 AA** en contraste de texto (`≥4.5:1` en cuerpo, placeholders y etiquetas, corrigiendo el uso de blanco sobre `#3B9B8E` hacia `#216E63` o tinta oscura), navegación completa por teclado con `:focus-visible` nítido, áreas táctiles mínimas de `44×44px` para uso móvil en calle y respeto integral a `prefers-reduced-motion` tanto en GSAP como en transiciones CSS.
+
+## Implementación y evidencia pendiente
+
+La landing mantiene Vite, TypeScript, Tailwind y GSAP sin React, por decisión del usuario. Casos de estudio, métricas, reseñas con autoría y foto del equipo no están disponibles: deben identificarse como pendientes. No existe envío de formulario a backend ni confirmación de recepción de WhatsApp. El usuario confirmó atención por WhatsApp de lunes a domingo, de 8:00 a. m. a 9:00 p. m. (America/Caracas), con respuesta en un máximo de 3 horas dentro del horario de atención; fuera de horario el plazo continúa al abrir. Los horarios físicos de las sedes siguen siendo los de src/data.ts. La URL definitiva aún no existe. El usuario acepta para esta landing de presentación los textos de privacidad y los espacios de contenido/fotografías actuales, sin inventar pruebas sociales.

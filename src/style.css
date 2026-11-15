@@ -2,25 +2,25 @@
 
 @theme {
   --font-sans: 'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Archivo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Barlow Condensed', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --color-cobalt-nave: #09569A;
   --color-cobalt-deep: #053563;
-  --color-ferretero-red: #DF2726;
+  --color-ferretero-red: #BD1E1E;
   --color-ferretero-red-deep: #BD1E1E;
   --color-agro-emerald: #216E63;
   --color-agro-teal-bright: #3B9B8E;
   --color-vial-amber: #F5B800;
   --color-whatsapp-direct: #157F3F;
-  --color-canvas-stone: #F6F5F1;
+  --color-canvas-stone: #F7F9FA;
   --color-surface-pure: #FFFFFF;
-  --color-surface-recessed: #ECEAE3;
+  --color-surface-recessed: #E8F0F6;
   --color-ink-primary: #111924;
   --color-ink-secondary: #435060;
   --color-ink-muted: #5E6B7C;
   --color-ink-on-cobalt: #DCEBFA;
-  --color-hairline-struct: #D8D5CC;
+  --color-hairline-struct: #C9D5DF;
 }
 
 /* ==========================================================================
@@ -30,20 +30,20 @@
   /* Brand & Architectural Palette */
   --color-cobalt-nave: #09569A;
   --color-cobalt-deep: #053563;
-  --color-ferretero-red: #DF2726;
+  --color-ferretero-red: #BD1E1E;
   --color-ferretero-red-deep: #BD1E1E;
   --color-agro-emerald: #216E63;
   --color-agro-teal-bright: #3B9B8E;
   --color-vial-amber: #F5B800;
   --color-whatsapp-direct: #157F3F;
-  --color-canvas-stone: #F6F5F1;
+  --color-canvas-stone: #F7F9FA;
   --color-surface-pure: #FFFFFF;
-  --color-surface-recessed: #ECEAE3;
+  --color-surface-recessed: #E8F0F6;
   --color-ink-primary: #111924;
   --color-ink-secondary: #435060;
   --color-ink-muted: #5E6B7C;
   --color-ink-on-cobalt: #DCEBFA;
-  --color-hairline-struct: #D8D5CC;
+  --color-hairline-struct: #C9D5DF;
 
   /* Multi-layered OKLCH Elevation Vocabulary */
   --shadow-card:
@@ -228,7 +228,7 @@
 
   h1 {
     font-family: var(--font-display);
-    font-size: clamp(2.35rem, 4.8vw, 4.25rem);
+    font-size: clamp(2.5rem, 4.8vw, 4.5rem);
     font-weight: 800;
     line-height: 1.03;
     letter-spacing: -0.03em;
@@ -237,7 +237,7 @@
 
   h2 {
     font-family: var(--font-display);
-    font-size: clamp(1.75rem, 3.2vw, 2.75rem);
+    font-size: clamp(1.75rem, 3.2vw, 3rem);
     font-weight: 800;
     line-height: 1.08;
     letter-spacing: -0.025em;
@@ -306,7 +306,7 @@
   background: var(--color-canvas-stone);
 }
 ::-webkit-scrollbar-thumb {
-  background: #C4C0B4;
+  background: #C9D5DF;
   border-radius: 9999px;
   border: 2px solid var(--color-canvas-stone);
 }
@@ -468,7 +468,7 @@
   min-height: 44px;
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid #C8C4B8;
+  border: 1px solid #C9D5DF;
   background-color: var(--color-surface-pure);
   color: var(--color-ink-primary);
   font-family: var(--font-sans);
@@ -482,7 +482,7 @@
   opacity: 1;
 }
 .mc-field:hover {
-  border-color: #9B988D;
+  border-color: #5E6B7C;
 }
 .mc-field:focus-visible {
   outline: none;
@@ -571,7 +571,7 @@
   .mc-blueprint-stage {
     position: relative;
     background-color: var(--color-cobalt-deep);
-    background-image: linear-gradient(128deg, #032649 0%, #053563 58%, #07447C 100%);
+    background-image: none;
     color: #FFFFFF;
     padding: 40px 24px;
   }
@@ -807,7 +807,7 @@
   transition:
     transform var(--tabs-dur) var(--tabs-ease),
     width var(--tabs-dur) var(--tabs-ease);
-  will-change: transform, width;
+  will-change: transform;
   z-index: 0;
   pointer-events: none;
 }
