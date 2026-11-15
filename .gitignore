@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local skill installations and validation artifacts
+.agents/skills/
+test-results/
+playwright-report/
+.impeccable/*.png
