@@ -1,3 +1,4 @@
+import gsap from 'gsap';
 import { PAGES, resolveRoute, applyPageMetadata, type AppView } from './pages';
 import './editorial.css';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
@@ -17,6 +18,7 @@ import {
 } from './data';
 import {
   initGsapAnimations,
+  replayHeroIntro,
   animateFilteredItems,
   pulseElement,
   refreshScrollAnimations,
@@ -28,8 +30,6 @@ interface QuoteItem {
   productId: string;
   qty: number;
 }
-
-type SoftSwapElement = HTMLElement & { _softTimer?: number };
 
 const STORAGE_QUOTE_KEY = 'mc_quote_list_v2';
 const STORAGE_BRANCH_KEY = 'mc_selected_branch_v2';
@@ -263,52 +263,6 @@ function setAnimatedDigits(group: HTMLElement | null, nextText: string): void {
 }
 
 /**
- * 34-text-swap-soft.md: Cross-blurs old value into new value in place while easing width.
- */
-function softSwap(el: SoftSwapElement | null, next: string): void {
-  if (!el) return;
-  const prev = el.dataset.text ?? el.textContent ?? '';
-  if (prev === next) return;
-  el.dataset.text = next;
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    el.textContent = next;
-    return;
-  }
-
-  if (el._softTimer) window.clearTimeout(el._softTimer);
-
-  const out = document.createElement('span');
-  out.className = 't-text-soft-old';
-  out.setAttribute('aria-hidden', 'true');
-  out.textContent = prev;
-
-  const inn = document.createElement('span');
-  inn.className = 't-text-soft-new';
-  inn.textContent = next;
-
-  const w0 = el.getBoundingClientRect().width;
-  el.classList.remove('is-swapping');
-  el.replaceChildren(out, inn);
-  const w1 = inn.getBoundingClientRect().width;
-
-  if (w0 > 0 && w1 > 0) {
-    el.style.width = `${w0}px`;
-    void el.offsetWidth;
-    el.classList.add('is-swapping');
-    el.style.width = `${w1}px`;
-  } else {
-    el.classList.add('is-swapping');
-  }
-
-  el._softTimer = window.setTimeout(() => {
-    el.classList.remove('is-swapping');
-    el.style.width = '';
-    el.textContent = next;
-  }, 250);
-}
-
-/**
  * 16-tabs-sliding.md: Wires sliding active pill + keyboard WAI-ARIA arrow support.
  */
 function setupSlidingTabs(
@@ -480,16 +434,27 @@ function showToast(message: string): void {
 /* ==========================================================================
    4. LIVE BCV RATE FETCH, HERO QUICK CALCULATOR & PRICE PROPAGATION
    ========================================================================== */
+const calculatorDisplay = { value: 0 };
+let calculatorTween: gsap.core.Tween | undefined;
+const bsNumberFormat = new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function updateHeroCalcResult(animate = true): void {
-  const resultEl = document.getElementById('hero-calc-bs-result') as SoftSwapElement | null;
+  const resultEl = document.getElementById('hero-calc-bs-result');
+  const announcement = document.getElementById('hero-calc-announcement');
   if (!resultEl) return;
-  const formatted = `Bs. ${formatBs(heroCalcUsd)}`;
-  if (animate) {
-    softSwap(resultEl, formatted);
-  } else {
-    resultEl.dataset.text = formatted;
-    resultEl.textContent = formatted;
+  const target = heroCalcUsd * bcvRate;
+  calculatorTween?.kill();
+  const draw = () => { resultEl.textContent = `Bs. ${bsNumberFormat.format(calculatorDisplay.value)}`; };
+  const settle = () => {
+    calculatorDisplay.value = target;
+    draw();
+    if (announcement) announcement.textContent = `${bsNumberFormat.format(target)} bolívares${bcvIsLive ? '' : ', referencia sin actualizar'}`;
+  };
+  if (!animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    settle();
+    return;
   }
+  // Continue from the value currently on screen; rapid input replaces the destination.
+  calculatorTween = gsap.to(calculatorDisplay, { value: target, duration: .32, ease: 'power2.out', onUpdate: draw, onComplete: settle });
 }
 
 function initHeroBcvCalculator(): void {
@@ -2043,7 +2008,7 @@ function switchView(nextView: AppView, skipScrollTop = false, useTransition = tr
       tabSyncCallbacks.forEach((fn) => fn());
       if (nextView === 'tienda') syncCatalogTabsPill();
       if (nextView === 'cursos') syncCursosTabsPill();
-      if (nextView === 'inicio') syncStoreTabsPill();
+      if (nextView === 'inicio') { syncStoreTabsPill(); if (prevView !== 'inicio') replayHeroIntro(); }
       refreshScrollAnimations();
     });
   };
@@ -2271,3 +2236,5 @@ if (document.readyState === 'loading') {
 } else {
   bootstrap();
 }
+
+if (import.meta.hot) import.meta.hot.dispose(() => calculatorTween?.kill());

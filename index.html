@@ -168,24 +168,25 @@
       <div id="view-inicio" class="spa-view">
         <!-- HERO ESCÉNICO: PLANO CAD COBALTO + VIGAS TRICOLOR DEL ISOTIPO + CONSOLA BCV -->
         <section id="hero-blueprint-section" class="mc-hero">
-          <div class="mc-mesh" aria-hidden="true"><svg viewBox="0 0 600 600"><path data-liquid d="M480 120C570 210 510 400 390 470S100 520 80 360S160 90 280 70S400 40 480 120Z" fill="currentColor"/></svg><span class="mc-particle"></span><span class="mc-particle"></span><span class="mc-particle"></span></div>
+          <div class="mc-mesh" aria-hidden="true"><div class="mc-mesh-colors"></div><span class="mc-particle"></span><span class="mc-particle"></span><span class="mc-particle"></span><span class="mc-particle"></span><span class="mc-particle"></span><span class="mc-particle"></span><span class="mc-particle"></span><span class="mc-particle"></span></div>
           <div class="mc-hero-layout">
             <div class="mc-hero-copy">
-              <h1><span class="mc-line-mask"><span data-hero-line>Todo empieza</span></span><span class="mc-line-mask"><span data-hero-line>con una <em>idea.</em></span></span><span class="mc-line-mask"><span data-hero-line>Aquí la construyes.</span></span></h1>
+              <h1><span class="mc-line-mask"><span data-hero-line>Todo empieza</span></span><span class="mc-line-mask"><span data-hero-line>con una <em class="mc-kinetic-word"><span data-hero-keyword>idea.</span><svg viewBox="0 0 180 16" aria-hidden="true"><path data-hero-underline pathLength="1" d="M3 12Q84 0 177 7" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></em></span></span><span class="mc-line-mask"><span data-hero-line>Aquí la construyes.</span></span></h1>
               <p data-hero-copy>De la primera herramienta al último detalle de tu hogar. Encuentra lo que necesitas y cotiza con tu supertienda MangoCenter.</p>
               <div data-hero-ctas class="mc-hero-actions"><button type="button" data-open-catalog class="mc-btn mc-btn-primary">Armar mi cotización <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button><button type="button" data-goto-sedes class="mc-text-link">Encontrar mi supertienda</button></div>
               <p class="mc-hero-note">Precios referenciales en USD y bolívares · Atención por WhatsApp</p>
             </div>
             <figure class="mc-hero-photo" data-hero-photo>
+              <svg class="mc-liquid" viewBox="0 0 600 600" aria-hidden="true"><defs><linearGradient id="hero-liquid-color" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#09569A"/><stop offset=".55" stop-color="#3B9B8E"/><stop offset="1" stop-color="#216E63"/></linearGradient></defs><path data-liquid d="M480 120C570 210 510 400 390 470S100 520 80 360S160 90 280 70S400 40 480 120Z" fill="url(#hero-liquid-color)"/></svg>
               <img src="/media/maracay.webp" width="1600" height="680" alt="Campaña de MangoCenter Maracay: supertienda de la avenida Las Delicias al atardecer" fetchpriority="high" />
               <figcaption><span>Tu próximo proyecto tiene un lugar.</span><button type="button" data-goto-sedes>Conoce nuestras sedes <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></button></figcaption>
             </figure>
           </div>
-          <div class="mc-hero-bottom"><p>Ferretería. Construcción. Hogar. Tecnología. Agro.</p><span>¡Para toda la familia!</span></div>
+          <div class="mc-hero-bottom"><p>Ferretería. Construcción. Hogar. Tecnología. Agro.</p><div class="mc-hero-footer-actions"><span>¡Para toda la familia!</span><button id="hero-motion-toggle" type="button" aria-pressed="false" hidden>Pausar animación</button></div></div>
         </section>
         <section class="mc-rate-bar" aria-label="Calculadora de referencia en bolívares">
           <div><strong>Planea en dólares. Consulta en bolívares.</strong><span id="hero-ledger-bcv-note">Referencia local · se valida en caja</span></div>
-          <div class="mc-rate-calculator"><label for="hero-calc-usd">USD</label><input id="hero-calc-usd" type="number" min="0" max="999999" value="25" inputmode="decimal" step="0.01"/><span aria-hidden="true">=</span><output id="hero-calc-bs-result" for="hero-calc-usd" aria-live="polite">Bs. 1.171,25</output></div>
+          <div class="mc-rate-calculator"><label for="hero-calc-usd">USD</label><input id="hero-calc-usd" type="number" min="0" max="999999" value="25" inputmode="decimal" step="0.01"/><span aria-hidden="true">=</span><output id="hero-calc-bs-result" for="hero-calc-usd" aria-live="off">Bs. 1.171,25</output><span id="hero-calc-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span></div>
         </section>
 
         <!-- MOSAICO ARQUITECTÓNICO DE LOS 5 MUNDOS (CON FOCO RADIAL Y VIGAS DE COLOR) -->

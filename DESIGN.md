@@ -21,10 +21,11 @@ colors:
   pending-ink: '#715017'
   pending-surface: '#FFF3D3'
   navigation-glass: 'rgb(255 255 255 / .94)'
-  caption-glass: 'rgb(255 255 255 / .9)'
-  mesh-green: '#c8e6dfaa'
-  mesh-blue: '#c9ddeb99'
-  image-outline: '#0000001a'
+  caption-glass: 'rgb(255 255 255 / .72)'
+  caption-glass-mobile: 'rgb(255 255 255 / .82)'
+  mesh-green: '#8FCFBC'
+  mesh-blue: '#72B6D5'
+  mesh-warm: '#EBBBAC'
   action-shadow-near: '#671a1917'
   action-shadow-far: '#671a1910'
   tile-surface: 'rgba(3, 30, 58, 0.62)'
@@ -103,7 +104,7 @@ Hero de dos columnas con CTA visible en el primer viewport; apilado a 600px. Dep
 
 ## Elevation & Depth
 
-Glass limitado a navegación y pie de fotografía. Dos capas suaves en botones y paneles; divisores para listas. El mesh es de bajo contraste y ocupa solo el hero. En móvil el pie de foto se vuelve opaco para reducir composición.
+Glass limitado a navegación y pie de fotografía. El pie se superpone a la imagen y a la silueta orgánica: blanco al 72% con blur de 18px en escritorio, 82% y 12px en móvil, con reflejo interior y sombra desplazada. El mesh ocupa solo el hero; mezcla azul cielo, verde y un acento cálido más visibles, con un velo claro detrás del texto. La silueta azul-verde se deforma detrás de la fotografía. No se anima el blur.
 
 ## Shapes
 
@@ -112,6 +113,10 @@ Controles 8px y paneles 12px. Líneas divisorias en departamentos; no cajas de i
 ## Components
 
 CTA principal rojo. Hover 150ms y salida 250ms; press .96. Dropdown/modal abre 250ms y cierra 150ms; acordeón 250ms reversible. GSAP usa timeline de entrada, matchMedia, cleanup y pausa de ambiente fuera de pantalla o en pestaña oculta. Filtros solo reciben un fundido breve. Reduced-motion conserva estado y lectura sin recorridos.
+
+Entrada del hero: líneas escalonadas, énfasis en “idea” y subrayado SVG trazado. Se reproduce al volver a Inicio. Ocho partículas en escritorio y cinco en móvil; el control “Pausar animación” detiene el ambiente. Con movimiento reducido, titular y silueta quedan estáticos y las partículas se ocultan.
+
+Calculadora BCV: un único nodo de texto con cifras tabulares y espacio fijo en escritorio; fila propia en móvil. El contador interpola durante 320ms desde el importe visible hasta el nuevo destino, interrumpiendo el tween anterior al seguir escribiendo. Mantiene el tamaño de letra; no anima anchura ni superpone textos. El lector de pantalla recibe el importe final, no cada fotograma. Con movimiento reducido, la actualización es inmediata.
 
 Formulario: validación, límites de longitud, errores asociados y preparación de mensaje; /gracias no afirma recepción. Mapa con carga voluntaria. Lista y sede persisten en localStorage. Breadcrumbs, foco de título e historial nativo conectan las rutas.
 
