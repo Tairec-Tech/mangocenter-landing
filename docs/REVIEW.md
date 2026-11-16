@@ -49,3 +49,16 @@ Se mantuvo la barra móvil por su utilidad; no se añadió pinning porque bloque
 ## Resultado
 
 Implementación local, crítica dual y correcciones terminadas para el alcance de landing de presentación aceptado. URL pública pendiente de existir; no impide la vista previa local. Integraciones externas y respuesta HTTP de Vercel no verificadas en producción; no se ha publicado.
+
+## Continuación: efectos visibles y calculadora BCV
+
+El usuario pidió aumentar la presencia de Gradient Mesh, Glassmorphism, Liquid Morph, Kinetic Type y partículas, y corregir el salto de tamaño/posición mostrado en su grabación de la calculadora. Los cinco archivos de implementación sobrevivieron al cambio de entorno; no se reaplicaron sus cambios al reanudar.
+
+- Mesh con colores más perceptibles, silueta orgánica azul-verde detrás de la fotografía y panel translúcido con blur acotado también en móvil.
+- Entrada escalonada del titular, énfasis y subrayado de “idea”, repetida al volver a Inicio. Ocho partículas en escritorio, cinco en móvil; control de pausa y respeto al movimiento reducido.
+- El importe BCV es un único texto con cifras tabulares: interpola 320ms desde el valor visible al nuevo destino, sin reemplazos superpuestos ni cambio de tamaño. El campo USD y el resultado conservan su posición. El lector de pantalla recibe solo el resultado final.
+- 23 pruebas aprobadas: las 19 anteriores más escritura rápida en dos tamaños de pantalla, pausa/reanudación/regreso al hero y movimiento reducido. La espera de accesibilidad se ajustó a la ruta visible; no se desactivaron comprobaciones de axe.
+- Compilación correcta; detector de fuente y hero renderizado sin hallazgos. Inspección final con movimiento normal en escritorio y móvil, sin errores JavaScript observados. La tasa 911,62 usada en las comprobaciones es una respuesta de prueba, no una certificación de la tasa real.
+- Los vídeos de diagnóstico obtenidos por screencast tienen pocos fotogramas en este entorno y no sirven para medir fluidez ni acreditar 60fps; la validación funcional muestrea los valores y dimensiones con requestAnimationFrame.
+
+Estos ajustes posteriores al commit 3995842 permanecen locales. No se realizó push ni publicación durante esta continuación, respetando la instrucción más reciente del usuario.
