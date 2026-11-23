@@ -1,7 +1,6 @@
 import gsap from 'gsap';
 import { PAGES, resolveRoute, applyPageMetadata, type AppView } from './pages';
 import './editorial.css';
-import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import {
   CATEGORIES,
   PRODUCTS,
@@ -554,7 +553,8 @@ function renderWorldsMosaic(): void {
   const grid = document.getElementById('worlds-mosaic-grid');
   if (!grid) return;
 
-  grid.innerHTML = CATEGORIES.map((cat) => `<button type="button" class="mc-department" data-world-slug="${cat.slug}"><div><h3>${escapeHtml(cat.name)}</h3><p>${escapeHtml(cat.subtitle)}</p></div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>`).join('');
+  const compactNames: Record<string, string> = { ferreteria: 'Ferretería', construccion: 'Construcción', hogar: 'Hogar y baños', agro: 'Agro y jardín', tecnologia: 'Tecnología', electricidad: 'Iluminación' };
+  grid.innerHTML = CATEGORIES.map((cat) => `<button type="button" class="mc-department" data-world-slug="${cat.slug}"><div><h3><span class="mc-desktop-copy">${escapeHtml(cat.name)}</span><span class="mc-mobile-copy">${escapeHtml(compactNames[cat.slug] ?? cat.name)}</span></h3><p><span class="mc-desktop-copy">${escapeHtml(cat.subtitle)}</span><span class="mc-mobile-copy">${escapeHtml(cat.itemCountLabel)}</span></p></div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>`).join('');
 
   grid.querySelectorAll<HTMLButtonElement>('[data-world-slug]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -582,7 +582,7 @@ function createProductCardMarkup(product: Product): string {
 
   return `
     <div class="t-tilt h-full" data-stagger-card>
-      <article class="t-tilt-card mc-card mc-card--interactive mc-concentric-lg h-full flex flex-col">
+      <article class="mc-product-card t-tilt-card mc-card mc-card--interactive mc-concentric-lg h-full flex flex-col">
         <figure class="mc-concentric-lg-inner mc-photo-frame relative aspect-[4/3] bg-[#E8F0F6]">
           <img
             src="${product.image}"
@@ -601,7 +601,7 @@ function createProductCardMarkup(product: Product): string {
           </div>
         </figure>
 
-        <div class="px-2 pt-3.5 pb-2 flex-1 flex flex-col">
+        <div class="mc-product-content px-2 pt-3.5 pb-2 flex-1 flex flex-col">
           <h3 class="!text-base font-bold text-[#111924] leading-snug line-clamp-2">
             ${escapeHtml(product.name)}
           </h3>
@@ -610,7 +610,7 @@ function createProductCardMarkup(product: Product): string {
             ${escapeHtml(product.brand)} · ${escapeHtml(product.unit)} · ${escapeHtml(product.stockStatus)}
           </p>
 
-          <ul class="mt-2.5 space-y-1 text-xs text-[#435060]">
+          <details class="mc-product-specs" data-mobile-details ${window.matchMedia('(min-width: 768px)').matches ? 'open' : ''}><summary>Detalles<span class="sr-only"> de ${escapeHtml(product.name)}</span></summary><p class="mc-product-sku">Código: ${escapeHtml(product.sku)}</p><ul class="mt-2.5 space-y-1 text-xs text-[#435060]">
             ${product.specs
               .slice(0, 3)
               .map(
@@ -622,9 +622,9 @@ function createProductCardMarkup(product: Product): string {
               `
               )
               .join('')}
-          </ul>
+          </ul></details>
 
-          <div class="mt-auto pt-3.5 border-t border-[#C9D5DF] flex items-end justify-between gap-2 tabular-nums">
+          <div class="mc-product-purchase mt-auto pt-3.5 border-t border-[#C9D5DF] flex items-end justify-between gap-2 tabular-nums">
             <div>
               <div class="flex items-baseline">
                 <strong class="font-display text-xl font-extrabold text-[#111924] leading-none">
@@ -858,6 +858,7 @@ function syncQuoteCountersAndCards(retriggeredProductId?: string): void {
   if (headerCount) headerCount.textContent = String(totalUnits);
   if (headerBadge) headerBadge.setAttribute('data-open', totalUnits > 0 ? 'true' : 'false');
   if (mobileCount) mobileCount.textContent = String(totalUnits);
+  document.getElementById('btn-mobile-open-quote')?.setAttribute('data-has-items', String(totalUnits > 0));
   if (catalogCount) catalogCount.textContent = String(totalUnits);
 
   if (dock) {
@@ -954,9 +955,10 @@ function renderQuoteDrawerContents(): void {
       subtotalUsd += lineUsd;
 
       return `
-        <div class="py-3.5 first:pt-0 last:pb-0 flex items-start justify-between gap-3">
+        <div class="mc-quote-item py-3.5 first:pt-0 last:pb-0 flex items-start justify-between gap-3">
+          <img class="mc-quote-thumbnail" src="${product.image}" alt="" width="64" height="64" loading="lazy" />
           <div class="min-w-0 flex-1">
-            <p class="font-display text-sm font-bold text-[#111924] leading-snug line-clamp-2">
+            <p class="mc-quote-product-name font-display text-sm font-bold text-[#111924] leading-snug">
               ${escapeHtml(product.name)}
             </p>
             <p class="mt-0.5 font-mono text-xs text-[#5E6B7C] tabular-nums">
@@ -967,12 +969,12 @@ function renderQuoteDrawerContents(): void {
             </p>
           </div>
 
-          <div class="flex items-center gap-1.5 shrink-0 tabular-nums">
+          <div class="mc-quote-quantity flex items-center gap-1.5 shrink-0 tabular-nums">
             <button
               type="button"
               data-quote-step="${product.id}"
               data-step-dir="-1"
-              aria-label="Disminuir cantidad"
+              aria-label="Disminuir cantidad de ${escapeHtml(product.name)}"
               class="w-11 h-11 rounded-[8px] bg-[#E8F0F6] hover:bg-[#C9D5DF] active:scale-[0.96] transition-transform duration-[var(--duration-quick)] text-[#111924] font-bold flex items-center justify-center cursor-pointer"
             >
               −
@@ -982,7 +984,7 @@ function renderQuoteDrawerContents(): void {
               type="button"
               data-quote-step="${product.id}"
               data-step-dir="1"
-              aria-label="Aumentar cantidad"
+              aria-label="Aumentar cantidad de ${escapeHtml(product.name)}"
               class="w-11 h-11 rounded-[8px] bg-[#E8F0F6] hover:bg-[#C9D5DF] active:scale-[0.96] transition-transform duration-[var(--duration-quick)] text-[#111924] font-bold flex items-center justify-center cursor-pointer"
             >
               +
@@ -1098,7 +1100,7 @@ function populateBranchSelectors(): void {
 
   const optionsHtml = STORES.map(
     (s) =>
-      `<option value="${s.id}" ${s.id === selectedStoreId ? 'selected' : ''}>${escapeHtml(s.city)} — ${escapeHtml(s.name)}</option>`
+      `<option value="${s.id}" ${s.id === selectedStoreId ? 'selected' : ''}>${escapeHtml(s.city)}</option>`
   ).join('');
 
   if (quoteSelect) quoteSelect.innerHTML = optionsHtml;
@@ -1337,6 +1339,7 @@ async function initStoreMap(): Promise<void> {
   }
 
   try {
+    const { setOptions, importLibrary } = await import('@googlemaps/js-api-loader');
     setOptions({ key: apiKey, v: 'weekly' });
     const { Map } = (await importLibrary('maps')) as google.maps.MapsLibrary;
     const initialBranch = STORES.find((s) => s.id === selectedStoreId) ?? STORES[0];
@@ -1511,7 +1514,7 @@ function renderEventsAndFaq(): void {
         </div>
       </article>
 
-      <div class="lg:col-span-6 flex flex-col justify-between divide-y divide-[#C9D5DF] border-y border-[#C9D5DF]">
+      <details class="mc-more-events lg:col-span-6" data-mobile-details ${window.matchMedia('(min-width: 768px)').matches ? 'open' : ''}><summary>Más actividades y novedades</summary><div class="flex flex-col justify-between divide-y divide-[#C9D5DF] border-y border-[#C9D5DF]">
         ${secondary
           .map((evt) => {
             const waUrl = `https://wa.me/584226264623?text=${encodeURIComponent(
@@ -1544,18 +1547,18 @@ function renderEventsAndFaq(): void {
             `;
           })
           .join('')}
-      </div>
+      </div></details>
     `;
   }
 
   if (faqContainer) {
     faqContainer.innerHTML = FAQS.map(
       (faq, index) => `
-        <div class="t-acc" data-open="${index === 0 ? 'true' : 'false'}">
+        <div class="t-acc" data-open="${index === 0 && window.matchMedia('(min-width: 768px)').matches ? 'true' : 'false'}">
           <button
             type="button"
             class="t-acc-head w-full py-4 text-left flex items-center justify-between gap-4 cursor-pointer"
-            aria-expanded="${index === 0 ? 'true' : 'false'}" aria-controls="answer-${faq.id}"
+            aria-expanded="${index === 0 && window.matchMedia('(min-width: 768px)').matches ? 'true' : 'false'}" aria-controls="answer-${faq.id}"
           >
             <span class="font-display text-base sm:text-lg font-bold text-[#111924]">
               ${escapeHtml(faq.question)}
@@ -1566,7 +1569,7 @@ function renderEventsAndFaq(): void {
               </svg>
             </span>
           </button>
-          <div class="t-acc-panel" id="answer-${faq.id}" aria-hidden="${index === 0 ? 'false' : 'true'}">
+          <div class="t-acc-panel" id="answer-${faq.id}" aria-hidden="${index === 0 && window.matchMedia('(min-width: 768px)').matches ? 'false' : 'true'}">
             <div class="t-acc-panel-inner">
               <p class="pb-5 pr-8 max-w-[65ch] text-sm sm:text-base text-[#435060] leading-relaxed">
                 ${escapeHtml(faq.answer)}
@@ -1928,6 +1931,7 @@ function openMobileDropdown(): void {
 
   mobileDropdownOpen = true;
   btn.setAttribute('aria-expanded', 'true');
+  btn.setAttribute('aria-label', 'Cerrar menú de navegación');
   iconOpen?.classList.add('hidden');
   iconClose?.classList.remove('hidden');
   dropdown.classList.remove('is-closing');
@@ -1944,6 +1948,7 @@ function closeMobileDropdown(): void {
 
   mobileDropdownOpen = false;
   btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-label', 'Abrir menú de navegación');
   iconOpen?.classList.remove('hidden');
   iconClose?.classList.add('hidden');
   dropdown.classList.remove('is-open');
@@ -2158,7 +2163,7 @@ function bindGlobalInteractions(): void {
     if (e.key === 'Tab') {
       const root = document.querySelector<HTMLElement>('#quote-drawer-root[aria-hidden="false"], #collaborator-modal-root[aria-hidden="false"]');
       if (root) {
-        const focusable = Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select, textarea, [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
+        const focusable = Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select, textarea, summary, [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
         const first = focusable[0], last = focusable.at(-1);
         if (e.shiftKey && (document.activeElement === first || !root.contains(document.activeElement))) { e.preventDefault(); last?.focus(); }
         else if (!e.shiftKey && (document.activeElement === last || !root.contains(document.activeElement))) { e.preventDefault(); first?.focus(); }
@@ -2238,3 +2243,15 @@ if (document.readyState === 'loading') {
 }
 
 if (import.meta.hot) import.meta.hot.dispose(() => calculatorTween?.kill());
+
+// Keep secondary content available without a long stack on phones.
+const mobileLayout = window.matchMedia('(max-width: 767px)');
+function syncMobileDetails(): void {
+  document.querySelectorAll<HTMLDetailsElement>('details[data-mobile-details]').forEach(details => { details.open = !mobileLayout.matches; });
+  refreshScrollAnimations();
+}
+syncMobileDetails();
+mobileLayout.addEventListener('change', syncMobileDetails);
+const onDetailsToggle = (event: Event) => { if (event.target instanceof HTMLDetailsElement) refreshScrollAnimations(); };
+document.addEventListener('toggle', onDetailsToggle, true);
+if (import.meta.hot) import.meta.hot.dispose(() => { mobileLayout.removeEventListener('change', syncMobileDetails); document.removeEventListener('toggle', onDetailsToggle, true); });
