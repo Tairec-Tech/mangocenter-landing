@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/MangoCenter.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="preload" href="/fonts/display-1.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/body-0.woff2" as="font" type="font/woff2" crossorigin />
     <title>MangoCenter Hiperferretería | Supertiendas en Venezuela · Catálogo a Tasa BCV</title>
     <meta
       name="description"
@@ -20,7 +22,7 @@
     <div class="mc-tricolor-cornice" aria-hidden="true"></div>
 
     <!-- Barra Utilitaria BCV y Canales Regionales -->
-    <div class="bg-[#053563] text-white border-b border-white/10 text-xs">
+    <div class="mc-utility-bar bg-[#053563] text-white border-b border-white/10 text-xs">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[38px] py-1.5 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3 flex-wrap">
           <div
@@ -39,7 +41,7 @@
           </span>
         </div>
 
-        <div class="flex items-center gap-4 ml-auto">
+        <div class="mc-utility-links flex items-center gap-4 ml-auto">
           <a
             href="https://wa.me/584226264623?text=Hola%20MangoCenter%2C%20deseo%20consultar%20disponibilidad%20y%20precios%20a%20tasa%20BCV."
             target="_blank"
@@ -178,7 +180,7 @@
             </div>
             <figure class="mc-hero-photo" data-hero-photo>
               <svg class="mc-liquid" viewBox="0 0 600 600" aria-hidden="true"><defs><linearGradient id="hero-liquid-color" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#09569A"/><stop offset=".55" stop-color="#3B9B8E"/><stop offset="1" stop-color="#216E63"/></linearGradient></defs><path data-liquid d="M480 120C570 210 510 400 390 470S100 520 80 360S160 90 280 70S400 40 480 120Z" fill="url(#hero-liquid-color)"/></svg>
-              <img src="/media/maracay.webp" width="1600" height="680" alt="Campaña de MangoCenter Maracay: supertienda de la avenida Las Delicias al atardecer" fetchpriority="high" />
+              <img src="/media/maracay.webp" srcset="/media/maracay-480.webp 480w, /media/maracay-800.webp 800w, /media/maracay-1200.webp 1200w, /media/maracay.webp 1600w" sizes="(max-width: 600px) calc(100vw - 44px), (max-width: 900px) calc((100vw - 80px) / 2.05), (max-width: 1360px) calc((100vw - 136px) / 2.05), 597px" width="1600" height="711" alt="Campaña de MangoCenter Maracay: supertienda de la avenida Las Delicias al atardecer" fetchpriority="high" decoding="async" />
               <figcaption><span>Tu próximo proyecto tiene un lugar.</span><button type="button" data-goto-sedes>Conoce nuestras sedes <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></button></figcaption>
             </figure>
           </div>
@@ -249,9 +251,9 @@
         <section class="mc-proof" id="historias">
           <div class="mc-proof-intro"><h2>Lo que construimos<br/>también nos une.</h2><p>Detrás de cada proyecto hay personas. Este espacio reunirá sus historias, con nombres, imágenes y resultados que podamos verificar.</p><a href="/contacto" data-nav-view="contacto" class="mc-text-link">Cuéntanos tu proyecto</a></div>
           <div class="mc-proof-editorial">
-            <article><h3>Proyectos de nuestra comunidad</h3><p class="mc-pending">Caso de estudio pendiente de publicación</p><dl><div><dt>El reto</dt><dd>Por documentar con el cliente.</dd></div><div><dt>La solución</dt><dd>Productos y acompañamiento por confirmar.</dd></div><div><dt>El resultado</dt><dd>Métricas verificables pendientes.</dd></div></dl></article>
-            <article><h3>La experiencia, en sus palabras</h3><p class="mc-pending">Reseñas verificadas pendientes</p><p>Publicaremos opiniones con autoría, fecha y enlace a su fuente. Por ahora, puedes conocer las sedes y sus indicaciones.</p><button type="button" data-goto-sedes class="mc-text-link">Ver las supertiendas</button></article>
-            <article class="mc-team-placeholder"><h3>Las personas detrás del mostrador</h3><p class="mc-pending">Foto real del equipo pendiente</p><p>Espacio reservado para una fotografía autorizada del equipo MangoCenter.</p></article>
+            <details data-mobile-details open><summary><h3>Proyectos de nuestra comunidad</h3></summary><p class="mc-pending">Caso de estudio pendiente de publicación</p><dl><div><dt>El reto</dt><dd>Por documentar con el cliente.</dd></div><div><dt>La solución</dt><dd>Productos y acompañamiento por confirmar.</dd></div><div><dt>El resultado</dt><dd>Métricas verificables pendientes.</dd></div></dl></details>
+            <details data-mobile-details open><summary><h3>La experiencia, en sus palabras</h3></summary><p class="mc-pending">Reseñas verificadas pendientes</p><p>Publicaremos opiniones con autoría, fecha y enlace a su fuente. Por ahora, puedes conocer las sedes y sus indicaciones.</p><button type="button" data-goto-sedes class="mc-text-link">Ver las supertiendas</button></details>
+            <details data-mobile-details open class="mc-team-placeholder"><summary><h3>Las personas detrás del mostrador</h3></summary><p class="mc-pending">Foto real del equipo pendiente</p><p>Espacio reservado para una fotografía autorizada del equipo MangoCenter.</p></details>
           </div>
         </section>
 
@@ -262,7 +264,7 @@
               <div>
                 <h2 class="text-white">De tu idea a tu lista. De tu lista a la tienda.</h2>
                 <p class="mt-2.5 max-w-[62ch] text-[#DCEBFA] text-base sm:text-lg">
-                  Diseñamos un flujo directo entre nuestra web y las cajas de cada supertienda para que llegues con precio claro y existencia validada.
+                  Consulta, arma tu lista y coordina el retiro con tu supertienda.
                 </p>
               </div>
               <button
@@ -294,7 +296,7 @@
                 </div>
                 <h3 class="text-white !text-xl font-bold">Verifica especificaciones y paridad</h3>
                 <p class="mt-2 text-sm text-[#DCEBFA] max-w-[44ch] leading-relaxed">
-                  Compara potencias, rendimientos y precios referenciales. Revisa el estado de la tasa y confirma el importe final con tu sede.
+                  Compara especificaciones y precios. Confirma la tasa y el importe final con tu sede.
                 </p>
               </div>
 
@@ -309,7 +311,7 @@
                 </div>
                 <h3 class="text-white !text-xl font-bold">Arma tu lista por ciudad</h3>
                 <p class="mt-2 text-sm text-[#DCEBFA] max-w-[44ch] leading-relaxed">
-                  Ajusta unidades en tu lista de cotización y selecciona la supertienda exacta donde prefieres retirar tus materiales.
+                  Ajusta las cantidades y elige la supertienda donde deseas retirar.
                 </p>
               </div>
 
@@ -324,7 +326,7 @@
                 </div>
                 <h3 class="text-white !text-xl font-bold">Coordina tu retiro por WhatsApp</h3>
                 <p class="mt-2 text-sm text-[#DCEBFA] max-w-[44ch] leading-relaxed">
-                  Envía tu lista con códigos SKU. La sede confirma disponibilidad y te indica los pasos para facturar y retirar.
+                  Envía tu lista con códigos SKU. Tu sede confirma stock y los pasos para facturar y retirar.
                 </p>
               </div>
             </div>
@@ -495,12 +497,12 @@
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
-                <h1 class="text-white !text-3xl sm:!text-4xl lg:!text-[3rem]">Catálogo referencial a tasa BCV</h1>
+                <h1 class="text-white !text-3xl sm:!text-4xl lg:!text-[3rem]">Catálogo a tasa BCV</h1>
                 <p class="mt-3 max-w-[64ch] text-[#DCEBFA] text-base sm:text-lg">
-                  Explora productos de referencia y arma tu lista de materiales. Tu supertienda confirma precios, disponibilidad y condiciones de retiro por WhatsApp.
+                  Añade productos de referencia a tu lista. Tu sede confirma precio, disponibilidad y retiro por WhatsApp.
                 </p>
               </div>
-              <div class="flex flex-wrap items-center gap-3 shrink-0">
+              <div class="mc-catalog-heading-actions flex flex-wrap items-center gap-3 shrink-0">
                 <button
                   type="button"
                   id="btn-catalog-open-drawer"
@@ -519,7 +521,7 @@
         <section class="mc-stone-drafting py-10 sm:py-14">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Controles de Búsqueda y Orden -->
-            <div class="flex flex-col md:flex-row gap-3.5 items-stretch md:items-center justify-between mb-5">
+            <div class="mc-catalog-controls flex flex-col md:flex-row gap-3.5 items-stretch md:items-center justify-between mb-5">
               <div class="relative flex-1 max-w-xl">
                 <svg class="w-4 h-4 text-[#5E6B7C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <circle cx="11" cy="11" r="8" />
@@ -529,7 +531,7 @@
                   type="search"
                   id="catalog-search-input"
                   class="mc-field !pl-10 !pr-20"
-                  placeholder="Buscar taladro, pintura, bomba, grifería o SKU..."
+                  placeholder="Buscar producto o código SKU"
                   aria-label="Buscar productos en el catálogo"
                 />
                 <button
@@ -566,7 +568,7 @@
             </div>
 
             <!-- Resumen de Resultados -->
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-6 border-b border-[#C9D5DF] text-sm text-[#435060]">
+            <div class="mc-catalog-summary flex flex-wrap items-center justify-between gap-2 pb-4 mb-6 border-b border-[#C9D5DF] text-sm text-[#435060]">
               <h2 id="catalog-results-meta" class="!text-base !font-sans !font-semibold text-[#111924] tabular-nums">Mostrando 12 productos</h2>
               <p class="font-mono text-xs text-[#216E63] font-semibold tabular-nums">
                 Importes referenciales: confirma la tasa y el precio final con tu sede.
@@ -642,7 +644,11 @@
                 <div class="mc-card mc-concentric-xl">
                   <figure class="mc-concentric-xl-inner mc-photo-frame aspect-[16/9] bg-[#E8F0F6]">
                     <img
-                      src="/Maracay apertura.jpg"
+                      src="/media/maracay.webp"
+                      srcset="/media/maracay-480.webp 480w, /media/maracay-800.webp 800w, /media/maracay-1200.webp 1200w, /media/maracay.webp 1600w"
+                      sizes="(max-width: 1023px) calc(100vw - 48px), 600px"
+                      loading="lazy"
+                      decoding="async"
                       alt="Equipo y fachada de MangoCenter Hiperferretería en Avenida Las Delicias, Maracay"
                       width="960"
                       height="540"
@@ -739,7 +745,7 @@
                   Selecciona la sede donde deseas retirar o consultar existencia. Nuestro formulario dirige automáticamente tu mensaje a la línea WhatsApp regional correspondiente.
                 </p>
 
-                <dl class="mt-8 divide-y divide-[#C9D5DF] border-y border-[#C9D5DF]">
+                <details data-mobile-details open class="mc-contact-channels"><summary>Teléfonos y correo de contacto</summary><dl class="mt-8 divide-y divide-[#C9D5DF] border-y border-[#C9D5DF]">
                   <div class="py-4">
                     <dt class="text-xs font-bold uppercase tracking-wider text-[#435060]">Central Nacional WhatsApp (Zulia, Aragua, Lara, Portuguesa)</dt>
                     <dd class="mt-1 font-mono text-base font-semibold text-[#09569A] tabular-nums">+58 422-6264623 (0422-MANGOCE)</dd>
@@ -756,7 +762,7 @@
                       </a>
                     </dd>
                   </div>
-                </dl>
+                </dl></details>
               </div>
 
               <!-- Columna Formulario con Validación Accesible (t-input-shake) -->
@@ -937,30 +943,25 @@
             </p>
           </div>
 
-          <div class="lg:col-span-3">
-            <h3 class="text-white !text-base font-bold">Navegación</h3>
+          <div class="lg:col-span-3"><details data-mobile-details open class="mc-footer-links"><summary><h3 class="text-white !text-base font-bold">Navegación</h3></summary>
             <ul class="mt-3 space-y-2 text-sm text-[#DCEBFA]">
               <li><a href="/" data-nav-view="inicio" class="hover:text-white">Inicio</a></li>
               <li><a href="/tienda" data-nav-view="tienda" class="hover:text-white">Catálogo Referencial BCV</a></li>
               <li><button type="button" data-goto-sedes class="hover:text-white cursor-pointer">Supertiendas y Mapa</button></li>
               <li><a href="/nosotros" data-nav-view="nosotros" class="hover:text-white">Nuestra Historia</a></li>
               <li><a href="/contacto" data-nav-view="contacto" class="hover:text-white">Contacto por Sede</a></li>
-            </ul>
-          </div>
+            </ul></details></div>
 
-          <div class="lg:col-span-3">
-            <h3 class="text-white !text-base font-bold">Sedes Operativas</h3>
+          <div class="lg:col-span-3"><details data-mobile-details open class="mc-footer-links"><summary><h3 class="text-white !text-base font-bold">Sedes Operativas</h3></summary>
             <ul class="mt-3 space-y-1.5 text-sm text-[#DCEBFA]">
               <li>Maracaibo (Corredor Vial Oeste · Zulia)</li>
               <li>Maracay (Av. Las Delicias · Aragua)</li>
               <li>Barquisimeto y Cabudare (Lara)</li>
               <li>Guanare y Araure (Portuguesa)</li>
               <li>Cuatricentenaria, Alto Barinas y Centro</li>
-            </ul>
-          </div>
+            </ul></details></div>
 
-          <div class="lg:col-span-2">
-            <h3 class="text-white !text-base font-bold">Institucional</h3>
+          <div class="lg:col-span-2"><details data-mobile-details open class="mc-footer-links"><summary><h3 class="text-white !text-base font-bold">Institucional</h3></summary>
             <ul class="mt-3 space-y-2 text-sm text-[#DCEBFA]">
               <li>
                 <a href="https://wa.me/584226264623" target="_blank" rel="noopener noreferrer" class="hover:text-white tabular-nums">
@@ -977,8 +978,7 @@
                   Portal Colaboradores (Odoo ERP)
                 </button>
               </li>
-            </ul>
-          </div>
+            </ul></details></div>
         </div>
 
         <div class="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[#DCEBFA]/90">
@@ -1018,7 +1018,7 @@
          BARRA INFERIOR MÓVIL ACCESIBLE (44px+ HIT TARGETS)
          ====================================================================== -->
     <nav
-      aria-label="Acceso rápido móvil"
+      aria-label="Acceso rápido móvil" id="mobile-quick-nav"
       class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#C9D5DF] px-2 py-1"
     >
       <div class="grid grid-cols-4 gap-1">
@@ -1085,7 +1085,7 @@
         aria-labelledby="quote-drawer-title"
         class="mc-drawer-panel pointer-events-auto absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-[var(--shadow-overlay)] flex flex-col"
       >
-        <div class="p-5 border-b border-[#C9D5DF] flex items-center justify-between gap-3">
+        <div class="mc-quote-heading p-5 border-b border-[#C9D5DF] flex items-center justify-between gap-3">
           <div>
             <h2 id="quote-drawer-title" class="!text-xl text-[#111924]">Lista de Cotización BCV</h2>
             <p class="text-xs text-[#5E6B7C] mt-0.5">Confirma disponibilidad y coordina retiro rápido por WhatsApp</p>
@@ -1102,10 +1102,11 @@
           </button>
         </div>
 
+        <div class="mc-quote-body">
         <!-- Selector de Supertienda de Retiro -->
-        <div class="px-5 py-3.5 bg-[#E8F0F6] border-b border-[#C9D5DF]">
+        <div class="mc-quote-branch px-5 py-3.5 bg-[#E8F0F6] border-b border-[#C9D5DF]">
           <label for="quote-branch-select" class="block text-xs font-bold uppercase tracking-wider text-[#435060] mb-1.5">
-            Supertienda donde deseas retirar o consultar
+            Tu supertienda de retiro o consulta
           </label>
           <select id="quote-branch-select" class="mc-field !min-h-[40px] !py-1.5 text-sm font-semibold"></select>
         </div>
@@ -1113,8 +1114,11 @@
         <!-- Lista de Ítems -->
         <div id="quote-items-container" class="flex-1 overflow-y-auto p-5 divide-y divide-[#C9D5DF]"></div>
 
+        <details class="mc-quote-hours"><summary>Horario y tiempo de respuesta</summary><p>WhatsApp: todos los días, 8:00 a. m.–9:00 p. m. Respuesta en hasta 3 horas de atención (Venezuela).</p></details>
+        </div>
         <!-- Pie de Totales Duales -->
-        <div class="p-5 border-t border-[#C9D5DF] bg-[#F7F9FA] space-y-3.5">
+        <div class="mc-quote-footer p-5 border-t border-[#C9D5DF] bg-[#F7F9FA] space-y-3.5">
+          <div class="mc-quote-totals">
           <div class="flex items-baseline justify-between gap-4 tabular-nums">
             <span class="text-sm font-semibold text-[#435060]">Total referencial USD:</span>
             <strong id="quote-total-usd" class="font-display text-2xl font-extrabold text-[#111924]">$0.00</strong>
@@ -1124,9 +1128,9 @@
             <strong id="quote-total-bs" class="font-mono text-sm font-semibold text-[#216E63]">Bs. 0,00</strong>
           </div>
 
+          </div>
           <button type="button" id="btn-undo-clear-quote" class="mc-text-link" hidden>Deshacer vaciado de lista</button>
           <p id="quote-rate-note" class="text-sm text-[#435060]" role="status"></p>
-          <p class="text-sm text-[#435060]">WhatsApp: todos los días, 8:00 a. m.–9:00 p. m. Respuesta en hasta 3 horas de atención (Venezuela).</p>
           <div class="pt-1 flex gap-2.5">
             <button
               type="button"
@@ -1143,7 +1147,7 @@
               <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
               </svg>
-              <span>Enviar a WhatsApp de Sede</span>
+              <span>Enviar por WhatsApp</span>
             </button>
           </div>
         </div>

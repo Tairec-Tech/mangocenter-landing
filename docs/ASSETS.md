@@ -35,3 +35,9 @@ Las campañas y el logotipo proceden de los archivos suministrados en public/. L
 | `/media/reference-23.webp` | https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=700&q=80 | Referencia ilustrativa; no fotografía exacta del SKU |
 
 Los WebP maracay, departamentos, comunidad y sedes son versiones optimizadas de las campañas JPG homónimas del repositorio. No se han inventado personas ni resultados. social-card.jpg es una composición tipográfica local creada con el logotipo existente y Barlow Condensed. Fuentes de Google Fonts (Barlow Condensed y Source Sans 3), autoalojadas en WOFF2 con sus licencias OFL. product-pending.svg es un aviso textual propio para una fuente 404.
+
+## Optimización del inicio
+
+`maracay-480.webp`, `maracay-800.webp` y `maracay-1200.webp` se generan del JPG original, con sus proporciones, remuestreo Lanczos y WebP de calidad 88. El navegador selecciona la resolución con `srcset` y `sizes`, incluida la densidad de píxeles; `maracay.webp` conserva la opción de 1600 píxeles. La vista Nosotros reutiliza estas versiones con carga diferida.
+
+Los seis WOFF2 conservan sus familias, pesos y licencias. Se redujeron con fontTools a los rangos U+0000–024F, U+0300–036F, U+1E00–1EFF, U+2000–206F, U+20A0–20CF, U+2100–214F, U+2190–21FF, U+2212 y U+FFFD: alfabeto latino, acentos, puntuación, monedas y símbolos utilizados. Se comprobó que los caracteres retenidos mantienen los glifos y sus métricas de avance originales. Una futura traducción que use otro alfabeto necesitará ampliar los subconjuntos.

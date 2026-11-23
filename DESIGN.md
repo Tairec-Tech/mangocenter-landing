@@ -100,7 +100,13 @@ Barlow Condensed: titular y encabezados; Source Sans 3: lectura, controles y cat
 
 ## Layout
 
-Hero de dos columnas con CTA visible en el primer viewport; apilado a 600px. Departamentos: tres columnas, dos a 900px, una a 600px. Secciones con intervalos generosos y grupos densos. Catálogo y sedes conservan sus controles y estructura operativa. Navegación móvil fija y espacio para safe-area. Rutas con breadcrumbs y retorno al inicio.
+Hero de dos columnas con CTA visible en el primer viewport; apilado a 600px. Departamentos: tres columnas, dos a 900px; nombres y descripciones breves en teléfono. Secciones con intervalos generosos y grupos densos. Catálogo y sedes conservan sus controles y estructura operativa. Navegación móvil fija y espacio para safe-area. Rutas con breadcrumbs y retorno al inicio.
+
+Hasta 767px, la cabecera mide 64px y la barra superior se concentra en la tasa BCV; el portal sigue disponible en el menú. Una sola barra inferior muestra las rutas principales y el estado de la cotización, sin otro dock encima. El inicio reduce sus márgenes a 40px entre secciones y conserva los cinco efectos. Catálogo y destacados usan dos columnas, imágenes más contenidas, nombres completos, detalles técnicos desplegables y botones de ancho completo de al menos 44px.
+
+La información secundaria de historias, actividades, canales de contacto y pie de página usa `details` nativos: cerrados inicialmente en teléfono y abiertos en escritorio. No se recortan los datos para simular menor longitud. Los campos mantienen 16px; el selector de sede muestra la ciudad o sucursal que identifica cada opción sin repetir el nombre corporativo.
+
+La lista de cotización ocupa la altura dinámica de la pantalla. En móvil muestra miniaturas, nombres legibles y controles de cantidad en una fila propia. Su cuerpo se desplaza independientemente de la cabecera y del pie de totales/envío. El estado de tasa permanece visible; el horario de atención se consulta en un desplegable dentro del cuerpo. Safe areas, teclado, lista vacía, vaciado/deshacer y orientación horizontal forman parte del recorrido. Evidencia y límites en docs/MOBILE.md.
 
 ## Elevation & Depth
 
@@ -115,6 +121,8 @@ Controles 8px y paneles 12px. Líneas divisorias en departamentos; no cajas de i
 CTA principal rojo. Hover 150ms y salida 250ms; press .96. Dropdown/modal abre 250ms y cierra 150ms; acordeón 250ms reversible. GSAP usa timeline de entrada, matchMedia, cleanup y pausa de ambiente fuera de pantalla o en pestaña oculta. Filtros solo reciben un fundido breve. Reduced-motion conserva estado y lectura sin recorridos.
 
 Entrada del hero: líneas escalonadas, énfasis en “idea” y subrayado SVG trazado. Se reproduce al volver a Inicio. Ocho partículas en escritorio y cinco en móvil; el control “Pausar animación” detiene el ambiente. Con movimiento reducido, titular y silueta quedan estáticos y las partículas se ocultan.
+
+Rendimiento del hero: el gradiente se promueve a una capa de composición solo mientras el ambiente está activo. La silueta SVG limita su área de pintura y las partículas ocultas en móvil no reciben tweens. La pausa se conserva al cambiar de breakpoint. La fotografía usa resoluciones adaptativas y las fuentes locales contienen los caracteres latinos necesarios; no se modifican la composición, los colores, el blur ni las duraciones. Mediciones y límites en docs/PERFORMANCE.md.
 
 Calculadora BCV: un único nodo de texto con cifras tabulares y espacio fijo en escritorio; fila propia en móvil. El contador interpola durante 320ms desde el importe visible hasta el nuevo destino, interrumpiendo el tween anterior al seguir escribiendo. Mantiene el tamaño de letra; no anima anchura ni superpone textos. El lector de pantalla recibe el importe final, no cada fotograma. Con movimiento reducido, la actualización es inmediata.
 
